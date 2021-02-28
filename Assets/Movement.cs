@@ -10,8 +10,8 @@ public class Movement : MonoBehaviour
     Vector3 directionToRallyPoint;
     Vector3 directionOfAim;
     Vector3 obstacle;
-    //Vector3 directionToObstacle;
-    //Vector3 decisionPoint;
+    Vector3 directionToObstacle;
+    Vector3 decisionPoint;
     float distanceToRallyPoint;
     float distanceToObstacle;
     float speed = 2f;
@@ -68,22 +68,22 @@ public class Movement : MonoBehaviour
         {
             pathClear = false;
             Debug.Log("Obstacle: " + hitObstacle.point);
-            Debug.Log("Direction to Rally Point: " + directionToRallyPoint);
+            //Debug.Log("Direction to Rally Point: " + directionToRallyPoint);
             //Debug.Log("Direction of Aim: " + directionOfAim);
             obstacle = hitObstacle.point;
-            //CalculateDecisionPoint();
+            CalculateDecisionPoint();
         }
     }
 
     void CalculateDecisionPoint()
     {
-        /*directionToObstacle = obstacle - transform.position;
+        directionToObstacle = obstacle - transform.position;
         distanceToObstacle = Vector3.Distance(obstacle, transform.position);
-        float distanceToDecisionPoint = distanceToObstacle - 1f;
+        float distanceToDecisionPoint = distanceToObstacle - .5f;
         decisionPoint.x = distanceToDecisionPoint * obstacle.x / distanceToObstacle;
         decisionPoint.y = distanceToDecisionPoint * obstacle.y / distanceToObstacle;
         decisionPoint.z = distanceToDecisionPoint * obstacle.z / distanceToObstacle;
         marker.transform.position = decisionPoint;
-        Debug.Log("decision point: " + decisionPoint);*/
+        Debug.Log("decision point: " + decisionPoint);
     }
 }
