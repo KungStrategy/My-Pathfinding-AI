@@ -8,7 +8,7 @@ public class Movement : MonoBehaviour
     public GameObject marker;
     Vector3 position;
     Vector3 directionToRallyPoint;
-    Vector3 directionOfAim;
+    //Vector3 directionOfAim;
     Vector3 obstacle;
     Vector3 directionToObstacle;
     Vector3 decisionPoint;
@@ -55,23 +55,28 @@ public class Movement : MonoBehaviour
         {
             Vector3 newPosition = new Vector3(hit.point.x, hit.point.y, hit.point.z);
             rallyPoint.transform.position = newPosition;
-            Debug.Log("Rally Point: " + hit.point);
+            //Debug.Log("Rally Point: " + hit.point);
         }
     }
 
     void CheckPath()
     {
-        directionOfAim = directionToRallyPoint;
-        directionOfAim.y += 1f;
+        //directionOfAim = directionToRallyPoint;
+        //directionOfAim.y += 1f;
         RaycastHit hitObstacle = new RaycastHit();
-        if (Physics.Raycast(transform.position, directionOfAim, out hitObstacle, distanceToRallyPoint))
+        if (Physics.Raycast(transform.position, directionToRallyPoint, out hitObstacle, distanceToRallyPoint))
         {
-            pathClear = false;
-            Debug.Log("Obstacle: " + hitObstacle.point);
-            //Debug.Log("Direction to Rally Point: " + directionToRallyPoint);
-            //Debug.Log("Direction of Aim: " + directionOfAim);
-            obstacle = hitObstacle.point;
-            CalculateDecisionPoint();
+            Debug.Log(hitObstacle.transform.gameObject.tag);
+            /*if (hitObstacle.transform.gameObject.tag == "Avoid")
+            {
+                pathClear = false;
+                Debug.Log("Obstacle: " + hitObstacle.point);
+                //Debug.Log("Direction to Rally Point: " + directionToRallyPoint);
+                //Debug.Log("Direction of Aim: " + directionOfAim);
+                obstacle = hitObstacle.point;
+                //CalculateDecisionPoint();
+            }*/
+            
         }
     }
 
