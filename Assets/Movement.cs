@@ -24,6 +24,9 @@ public class Movement : MonoBehaviour
 
     void Update()
     {
+        directionToRallyPoint = rallyPoint.transform.position - transform.position;
+        distanceToRallyPoint = Vector3.Distance(rallyPoint.transform.position, transform.position);
+
         if (Input.touchCount > 0)
         {
             ReasignRallyPoint();
@@ -32,8 +35,7 @@ public class Movement : MonoBehaviour
 
         if (pathClear == true)
         {
-            directionToRallyPoint = rallyPoint.transform.position - transform.position;
-            distanceToRallyPoint = Vector3.Distance(rallyPoint.transform.position, transform.position);
+            
             ratioX = directionToRallyPoint.x / distanceToRallyPoint;
             ratioY = directionToRallyPoint.y / distanceToRallyPoint;
             ratioZ = directionToRallyPoint.z / distanceToRallyPoint;
@@ -48,25 +50,26 @@ public class Movement : MonoBehaviour
     {
         RaycastHit hit;
         Touch touch = Input.GetTouch(0);
-
         Vector3 touchPosition = touch.position;
         Ray ray = Camera.main.ScreenPointToRay(touchPosition);
         if (Physics.Raycast(ray, out hit, Mathf.Infinity))
         {
             Vector3 newPosition = new Vector3(hit.point.x, hit.point.y, hit.point.z);
             rallyPoint.transform.position = newPosition;
-            //Debug.Log("Rally Point: " + hit.point);
+            Debug.Log("Rally Point: " + hit.point);
         }
     }
 
     void CheckPath()
     {
+        Debug.Log("path checked");
         //directionOfAim = directionToRallyPoint;
         //directionOfAim.y += 1f;
         RaycastHit hitObstacle = new RaycastHit();
         if (Physics.Raycast(transform.position, directionToRallyPoint, out hitObstacle, distanceToRallyPoint))
         {
-            Debug.Log(hitObstacle.transform.gameObject.tag);
+            Debug.Log("made it thru the loop");
+            //Debug.Log(hitObstacle.transform.gameObject.tag);
             /*if (hitObstacle.transform.gameObject.tag == "Avoid")
             {
                 pathClear = false;
