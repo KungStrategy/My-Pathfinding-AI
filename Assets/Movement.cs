@@ -8,7 +8,7 @@ public class Movement : MonoBehaviour
     public GameObject marker;
     Vector3 position;
     Vector3 directionToRallyPoint;
-    //Vector3 directionOfAim;
+    Vector3 directionOfAim;
     Vector3 obstacle;
     Vector3 directionToObstacle;
     Vector3 decisionPoint;
@@ -18,6 +18,7 @@ public class Movement : MonoBehaviour
     float ratioX;
     float ratioY;
     float ratioZ;
+    bool beingTouched = false;
     bool pathClear = true;
 
     void Start() => position = transform.position;
@@ -26,11 +27,20 @@ public class Movement : MonoBehaviour
     {
         directionToRallyPoint = rallyPoint.transform.position - transform.position;
         distanceToRallyPoint = Vector3.Distance(rallyPoint.transform.position, transform.position);
-
+      
         if (Input.touchCount > 0)
         {
-            ReasignRallyPoint();
-            CheckPath();
+            if (beingTouched == false)
+            {
+                ReasignRallyPoint();
+                CheckPath();
+                beingTouched = true;
+            }
+        }
+
+        if (Input.touchCount == 0)
+        {
+            beingTouched = false;
         }
 
         if (pathClear == true)
@@ -62,11 +72,13 @@ public class Movement : MonoBehaviour
 
     void CheckPath()
     {
-        Debug.Log("path checked");
-        //directionOfAim = directionToRallyPoint;
-        //directionOfAim.y += 1f;
-        RaycastHit hitObstacle = new RaycastHit();
-        if (Physics.Raycast(transform.position, directionToRallyPoint, out hitObstacle, distanceToRallyPoint))
+        //Debug.Log("path checked");
+        directionOfAim = directionToRallyPoint;
+        directionOfAim.y += 1f;
+        RaycastHit hitObstacle;
+        //Ray checkPathRay = new Ray(transform.position, directionToRallyPoint);
+        //Debug.DrawRay(transform.position, directionToRallyPoint * distanceToRallyPoint, Color.green);
+        if (Physics.Raycast(transform.position, directionOfAim, out hitObstacle, distanceToRallyPoint))
         {
             Debug.Log("made it thru the loop");
             //Debug.Log(hitObstacle.transform.gameObject.tag);
@@ -81,6 +93,10 @@ public class Movement : MonoBehaviour
             }*/
             
         }
+        Debug.Log("Soldier Position: " + transform.position);
+        Debug.Log("Direction to Rally Point: " + directionToRallyPoint);
+        //Debug.Log("Distance to Rally Point: " + distanceToRallyPoint);
+        Debug.Log("Obstacle: " + hitObstacle.point);
     }
 
     void CalculateDecisionPoint()
