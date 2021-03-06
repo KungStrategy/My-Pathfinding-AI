@@ -19,6 +19,7 @@ public class Movement : MonoBehaviour
     float ratioX;
     float ratioY;
     float ratioZ;
+    float angle;
     bool pathClear = true;
 
     void Start() => position = transform.position;
@@ -58,6 +59,10 @@ public class Movement : MonoBehaviour
             position.y = 1.5f;
             position.z += ratioZ * speed * Time.deltaTime;
             transform.position = position;
+            if (transform.position == decisionPoint)
+            {
+                ChooseRightOrLeft();
+            }
         }
     }
 
@@ -105,5 +110,12 @@ public class Movement : MonoBehaviour
         decisionPoint.y = obstacle.y - (ratioYDecision * 1f);
         decisionPoint.z = obstacle.z - (ratioZDecision * 1f);
         Debug.Log("decision point: " + decisionPoint);
+    }
+
+    void ChooseRightOrLeft()
+    {
+        Debug.Log("Choosing");
+        angle = Vector3.Angle(obstacle, transform.position);
+        Debug.Log("Angle: " + angle);
     }
 }
