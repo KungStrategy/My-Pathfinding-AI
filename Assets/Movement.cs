@@ -5,15 +5,16 @@ using UnityEngine;
 public class Movement : MonoBehaviour
 {
     public GameObject rallyPoint;
-    public GameObject marker;
     Vector3 position;
     Vector3 directionToRallyPoint;
     Vector3 directionOfAim;
     Vector3 obstacle;
     Vector3 directionToObstacle;
     Vector3 decisionPoint;
+    Vector3 directionToDecisionPoint;
     float distanceToRallyPoint;
     float distanceToObstacle;
+    float distanceToDecisionPoint;
     float speed = 2f;
     float ratioX;
     float ratioY;
@@ -38,10 +39,21 @@ public class Movement : MonoBehaviour
 
         if (pathClear == true)
         {
-            
             ratioX = directionToRallyPoint.x / distanceToRallyPoint;
             ratioY = directionToRallyPoint.y / distanceToRallyPoint;
             ratioZ = directionToRallyPoint.z / distanceToRallyPoint;
+            position.x += ratioX * speed * Time.deltaTime;
+            position.y = 1.5f;
+            position.z += ratioZ * speed * Time.deltaTime;
+            transform.position = position;
+        }
+        else
+        {
+            directionToDecisionPoint = decisionPoint - transform.position;
+            distanceToDecisionPoint = Vector3.Distance(decisionPoint, transform.position);
+            ratioX = directionToDecisionPoint.x / distanceToDecisionPoint;
+            ratioY = directionToDecisionPoint.y / distanceToDecisionPoint;
+            ratioZ = directionToDecisionPoint.z / distanceToDecisionPoint;
             position.x += ratioX * speed * Time.deltaTime;
             position.y = 1.5f;
             position.z += ratioZ * speed * Time.deltaTime;
@@ -59,7 +71,6 @@ public class Movement : MonoBehaviour
         {
             Vector3 newPosition = new Vector3(hit.point.x, hit.point.y, hit.point.z);
             rallyPoint.transform.position = newPosition;
-            //Debug.Log("Rally Point: " + hit.point);
         }
     }
 
@@ -77,39 +88,22 @@ public class Movement : MonoBehaviour
             {
                 pathClear = false;
                 Debug.Log("Obstacle: " + hitObstacle.point);
-                Debug.Log("Direction to Rally Point: " + directionToRallyPoint);
-                //Debug.Log("Direction of Aim: " + directionOfAim);
                 obstacle = hitObstacle.point;
                 CalculateDecisionPoint();
             }
-            
         }
-        //Debug.Log("Soldier Position: " + transform.position);
-        //Debug.Log("Direction to Rally Point: " + directionToRallyPoint);
-        //Debug.Log("Distance to Rally Point: " + distanceToRallyPoint);
-        //Debug.Log("Obstacle: " + hitObstacle.point);
     }
 
     void CalculateDecisionPoint()
     {
         directionToObstacle = obstacle - transform.position;
         distanceToObstacle = Vector3.Distance(obstacle, transform.position);
-        //float distanceToDecisionPoint = distanceToObstacle - .5f;
-        ratioX = directionToObstacle.x / distanceToObstacle;
-        ratioY = directionToObstacle.y / distanceToObstacle;
-        ratioZ = directionToObstacle.z / distanceToObstacle;
-        //decisionPoint.x = distanceToDecisionPoint * obstacle.x / distanceToObstacle;
-        //decisionPoint.y = distanceToDecisionPoint * obstacle.y / distanceToObstacle;
-        //decisionPoint.z = distanceToDecisionPoint * obstacle.z / distanceToObstacle;
-        //decisionPoint.x = distanceToDecisionPoint * directionToObstacle.x / distanceToObstacle * obstacle.x;
-        //decisionPoint.y = distanceToDecisionPoint * directionToObstacle.y / distanceToObstacle * obstacle.y;
-        //decisionPoint.z = distanceToDecisionPoint * directionToObstacle.z / distanceToObstacle * obstacle.z;
-        decisionPoint.x = (ratioX * obstacle.x) - (ratioX * .5f);
-        decisionPoint.y = (ratioY * obstacle.y) - (ratioY * .5f);
-        decisionPoint.z = (ratioZ * obstacle.z) - (ratioZ * .5f);
-        marker.transform.position = decisionPoint;
+        float ratioXDecision = directionToObstacle.x / distanceToObstacle;
+        float ratioYDecision = directionToObstacle.y / distanceToObstacle;
+        float ratioZDecision = directionToObstacle.z / distanceToObstacle;
+        decisionPoint.x = obstacle.x - (ratioXDecision * 1f);
+        decisionPoint.y = obstacle.y - (ratioYDecision * 1f);
+        decisionPoint.z = obstacle.z - (ratioZDecision * 1f);
         Debug.Log("decision point: " + decisionPoint);
-        Debug.Log("direction to obstacle: " + directionToObstacle);
-        Debug.Log("Distance To Obstacle: " + distanceToObstacle);
     }
 }
