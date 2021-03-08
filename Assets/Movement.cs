@@ -21,6 +21,7 @@ public class Movement : MonoBehaviour
     float ratioZ;
     float angle;
     bool pathClear = true;
+    bool chooseLeftOrRightActivated = false;
 
     void Start() => position = transform.position;
 
@@ -59,9 +60,12 @@ public class Movement : MonoBehaviour
             position.y = 1.5f;
             position.z += ratioZ * speed * Time.deltaTime;
             transform.position = position;
-            if (transform.position == decisionPoint)
+            if (distanceToDecisionPoint <= 0.001)
             {
-                ChooseRightOrLeft();
+                if (chooseLeftOrRightActivated == false)
+                {
+                    ChooseRightOrLeft();
+                }
             }
         }
     }
@@ -114,8 +118,22 @@ public class Movement : MonoBehaviour
 
     void ChooseRightOrLeft()
     {
-        Debug.Log("Choosing");
-        angle = Vector3.Angle(obstacle, transform.position);
+        chooseLeftOrRightActivated = true;
+        directionToObstacle = obstacle - transform.position;
+        angle += 5;
         Debug.Log("Angle: " + angle);
+        //Debug.Log("Direction to Obstacle: " + directionToObstacle);
+        Vector3 newVector = Quaternion.Euler(0, angle, 0) * directionToObstacle;
+        Debug.Log("New Vector: " + newVector);
+        RaycastHit hitCheck;
+        if (Physics.Raycast(transform.position, newVector, out hitCheck, 5))
+        {
+            Debug.Log("Hit point: " + hitCheck.point);
+            ChooseRightOrLeft();
+        }
+        else
+        {
+            Debug.Log("done");
+        }
     }
 }
