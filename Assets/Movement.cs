@@ -19,7 +19,8 @@ public class Movement : MonoBehaviour
     float ratioX;
     float ratioY;
     float ratioZ;
-    float angle;
+    float angleRight;
+    float angleLeft;
     bool pathClear = true;
     bool chooseLeftOrRightActivated = false;
 
@@ -120,16 +121,41 @@ public class Movement : MonoBehaviour
     {
         chooseLeftOrRightActivated = true;
         directionToObstacle = obstacle - transform.position;
-        angle += 5;
-        Debug.Log("Angle: " + angle);
+        CheckRight();
+        CheckLeft();
+    }
+
+    void CheckRight()
+    {
+        angleRight += 5;
+        Debug.Log("Angle: " + angleRight);
         //Debug.Log("Direction to Obstacle: " + directionToObstacle);
-        Vector3 newVector = Quaternion.Euler(0, angle, 0) * directionToObstacle;
+        Vector3 newVector = Quaternion.Euler(0, angleRight, 0) * directionToObstacle;
         Debug.Log("New Vector: " + newVector);
         RaycastHit hitCheck;
         if (Physics.Raycast(transform.position, newVector, out hitCheck, 5))
         {
             Debug.Log("Hit point: " + hitCheck.point);
-            ChooseRightOrLeft();
+            CheckRight();
+        }
+        else
+        {
+            Debug.Log("done");
+        }
+    }
+
+    void CheckLeft()
+    {
+        angleLeft -= 5;
+        Debug.Log("Angle: " + angleLeft);
+        //Debug.Log("Direction to Obstacle: " + directionToObstacle);
+        Vector3 newVector = Quaternion.Euler(0, angleLeft, 0) * directionToObstacle;
+        Debug.Log("New Vector: " + newVector);
+        RaycastHit hitCheck;
+        if (Physics.Raycast(transform.position, newVector, out hitCheck, 5))
+        {
+            Debug.Log("Hit point: " + hitCheck.point);
+            CheckLeft();
         }
         else
         {
