@@ -22,7 +22,9 @@ public class Movement : MonoBehaviour
     float angleRight;
     float angleLeft;
     bool pathClear = true;
-    bool chooseLeftOrRightActivated = false;
+    bool pathDecisionPoint = false;
+    bool pathAvoidPoint = false;
+    //bool chooseLeftOrRightActivated = false;
 
     void Start() => position = transform.position;
 
@@ -50,7 +52,8 @@ public class Movement : MonoBehaviour
             position.z += ratioZ * speed * Time.deltaTime;
             transform.position = position;
         }
-        else
+        
+        if (pathDecisionPoint == true)
         {
             directionToDecisionPoint = decisionPoint - transform.position;
             distanceToDecisionPoint = Vector3.Distance(decisionPoint, transform.position);
@@ -63,12 +66,12 @@ public class Movement : MonoBehaviour
             transform.position = position;
             if (distanceToDecisionPoint <= 0.001)
             {
-                if (chooseLeftOrRightActivated == false)
-                {
-                    ChooseRightOrLeft();
-                }
+                ChooseRightOrLeft();
+                pathDecisionPoint = false;
             }
         }
+
+       
     }
 
     void ReasignRallyPoint()
@@ -93,11 +96,11 @@ public class Movement : MonoBehaviour
         RaycastHit hitObstacle;
         if (Physics.Raycast(transform.position, directionOfAim, out hitObstacle, distanceToRallyPoint))
         {
-            Debug.Log(hitObstacle.transform.gameObject.tag);
+            //Debug.Log(hitObstacle.transform.gameObject.tag);
             if (hitObstacle.transform.gameObject.tag == "Avoid")
             {
                 pathClear = false;
-                Debug.Log("Obstacle: " + hitObstacle.point);
+                //Debug.Log("Obstacle: " + hitObstacle.point);
                 obstacle = hitObstacle.point;
                 CalculateDecisionPoint();
             }
@@ -114,52 +117,48 @@ public class Movement : MonoBehaviour
         decisionPoint.x = obstacle.x - (ratioXDecision * 1f);
         decisionPoint.y = obstacle.y - (ratioYDecision * 1f);
         decisionPoint.z = obstacle.z - (ratioZDecision * 1f);
-        Debug.Log("decision point: " + decisionPoint);
+        pathDecisionPoint = true;
+        //Debug.Log("decision point: " + decisionPoint);
     }
 
     void ChooseRightOrLeft()
     {
-        chooseLeftOrRightActivated = true;
         directionToObstacle = obstacle - transform.position;
         CheckRight();
         CheckLeft();
+        if (angleRight < -angleLeft)
+        {
+            Debug.Log("choose right");
+        }
+        else
+        {
+            Debug.Log("choose left");
+        }
     }
 
     void CheckRight()
     {
         angleRight += 5;
-        Debug.Log("Angle: " + angleRight);
-        //Debug.Log("Direction to Obstacle: " + directionToObstacle);
+        //Debug.Log("Angle: " + angleRight);
         Vector3 newVector = Quaternion.Euler(0, angleRight, 0) * directionToObstacle;
-        Debug.Log("New Vector: " + newVector);
+        //Debug.Log("New Vector: " + newVector);
         RaycastHit hitCheck;
         if (Physics.Raycast(transform.position, newVector, out hitCheck, 5))
         {
-            Debug.Log("Hit point: " + hitCheck.point);
             CheckRight();
-        }
-        else
-        {
-            Debug.Log("done");
         }
     }
 
     void CheckLeft()
     {
         angleLeft -= 5;
-        Debug.Log("Angle: " + angleLeft);
-        //Debug.Log("Direction to Obstacle: " + directionToObstacle);
+        //Debug.Log("Angle: " + angleLeft);
         Vector3 newVector = Quaternion.Euler(0, angleLeft, 0) * directionToObstacle;
-        Debug.Log("New Vector: " + newVector);
+        //Debug.Log("New Vector: " + newVector);
         RaycastHit hitCheck;
         if (Physics.Raycast(transform.position, newVector, out hitCheck, 5))
         {
-            Debug.Log("Hit point: " + hitCheck.point);
             CheckLeft();
-        }
-        else
-        {
-            Debug.Log("done");
         }
     }
 }
