@@ -5,24 +5,33 @@ using UnityEngine;
 public class Movement : MonoBehaviour
 {
     public GameObject rallyPoint;
+    public GameObject marker;
+    GameObject obstacle;
     Vector3 position;
     Vector3 directionToRallyPoint;
     Vector3 directionOfAim;
-    Vector3 obstacle;
+    Vector3 obstacleHitPoint;
     Vector3 directionToObstacle;
     Vector3 decisionPoint;
     Vector3 directionToDecisionPoint;
+    Vector3 scanPointRight;
+    Vector3 scanPointLeft;
+    Vector3 avoidPoint;
+    Vector3 directionToAvoidPoint;
     float distanceToRallyPoint;
     float distanceToObstacle;
     float distanceToDecisionPoint;
+    float distanceToCenter;
     float speed = 2f;
     float ratioX;
     float ratioY;
     float ratioZ;
     float angleRight;
     float angleLeft;
-    bool pathClear = true;
-    bool pathDecisionPoint = false;
+    string obstacleName;
+    bool pathClear = false;
+    bool obstacleDetected = false;
+    //bool pathDecisionPoint = false;
     bool pathAvoidPoint = false;
     //bool chooseLeftOrRightActivated = false;
 
@@ -51,9 +60,21 @@ public class Movement : MonoBehaviour
             position.y = 1.5f;
             position.z += ratioZ * speed * Time.deltaTime;
             transform.position = position;
+
+            if (obstacleDetected == true)
+            {
+                distanceToCenter = Vector3.Distance(obstacle.transform.position, transform.position);
+
+                if (distanceToCenter <= 2)
+                {
+                    pathClear = false;
+                    Debug.Log("Distance to center: " + distanceToCenter);
+                }
+            }
+
         }
         
-        if (pathDecisionPoint == true)
+        /*if (pathDecisionPoint == true)
         {
             directionToDecisionPoint = decisionPoint - transform.position;
             distanceToDecisionPoint = Vector3.Distance(decisionPoint, transform.position);
@@ -66,12 +87,16 @@ public class Movement : MonoBehaviour
             transform.position = position;
             if (distanceToDecisionPoint <= 0.001)
             {
-                ChooseRightOrLeft();
+                
+                //ChooseRightOrLeft();
                 pathDecisionPoint = false;
             }
-        }
+        }*/
 
-       
+        if (pathAvoidPoint == true)
+        {
+
+        }
     }
 
     void ReasignRallyPoint()
@@ -82,6 +107,7 @@ public class Movement : MonoBehaviour
         Ray ray = Camera.main.ScreenPointToRay(touchPosition);
         if (Physics.Raycast(ray, out hit, Mathf.Infinity))
         {
+            pathClear = true;
             Vector3 newPosition = new Vector3(hit.point.x, hit.point.y, hit.point.z);
             rallyPoint.transform.position = newPosition;
         }
@@ -99,40 +125,52 @@ public class Movement : MonoBehaviour
             //Debug.Log(hitObstacle.transform.gameObject.tag);
             if (hitObstacle.transform.gameObject.tag == "Avoid")
             {
-                pathClear = false;
-                //Debug.Log("Obstacle: " + hitObstacle.point);
-                obstacle = hitObstacle.point;
-                CalculateDecisionPoint();
+                //pathClear = false;
+                obstacleDetected = true;
+                Debug.Log("Obstacle: " + hitObstacle.point);
+                obstacleHitPoint = hitObstacle.point;
+                obstacleName = hitObstacle.transform.gameObject.name;
+                Debug.Log("Name: " + obstacleName);
+                obstacle = hitObstacle.transform.gameObject;
+                Debug.Log("Obstacle Center: " + obstacle.transform.position);
+                //CalculateDecisionPoint();
             }
         }
     }
 
-    void CalculateDecisionPoint()
+    /*void CalculateDecisionPoint()
     {
-        directionToObstacle = obstacle - transform.position;
-        distanceToObstacle = Vector3.Distance(obstacle, transform.position);
+        directionToObstacle = obstacleHitPoint - transform.position;
+        distanceToObstacle = Vector3.Distance(obstacleHitPoint, transform.position);
         float ratioXDecision = directionToObstacle.x / distanceToObstacle;
         float ratioYDecision = directionToObstacle.y / distanceToObstacle;
         float ratioZDecision = directionToObstacle.z / distanceToObstacle;
-        decisionPoint.x = obstacle.x - (ratioXDecision * 1f);
-        decisionPoint.y = obstacle.y - (ratioYDecision * 1f);
-        decisionPoint.z = obstacle.z - (ratioZDecision * 1f);
+        decisionPoint.x = obstacleHitPoint.x - (ratioXDecision * 1f);
+        decisionPoint.y = obstacleHitPoint.y - (ratioYDecision * 1f);
+        decisionPoint.z = obstacleHitPoint.z - (ratioZDecision * 1f);
         pathDecisionPoint = true;
-        //Debug.Log("decision point: " + decisionPoint);
-    }
+        Debug.Log("decision point: " + decisionPoint);
+        
+    }*/
 
     void ChooseRightOrLeft()
     {
-        directionToObstacle = obstacle - transform.position;
+        directionToObstacle = obstacleHitPoint - transform.position;
         CheckRight();
         CheckLeft();
         if (angleRight < -angleLeft)
         {
             Debug.Log("choose right");
+            Debug.Log("Scan Point: " + scanPointRight);
+            //directionToAvoidPoint = Quaternion.Euler(0, (angleRight + 10), 0) * directionToObstacle;
+            //calculateAvoidPoint();
         }
         else
         {
             Debug.Log("choose left");
+            Debug.Log("Scan Point: " + scanPointLeft);
+            //directionToAvoidPoint = Quaternion.Euler(0, (angleLeft - 10), 0) * directionToObstacle;
+            //calculateAvoidPoint();
         }
     }
 
@@ -142,9 +180,10 @@ public class Movement : MonoBehaviour
         //Debug.Log("Angle: " + angleRight);
         Vector3 newVector = Quaternion.Euler(0, angleRight, 0) * directionToObstacle;
         //Debug.Log("New Vector: " + newVector);
-        RaycastHit hitCheck;
-        if (Physics.Raycast(transform.position, newVector, out hitCheck, 5))
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, newVector, out hit, 5))
         {
+            scanPointRight = hit.point;
             CheckRight();
         }
     }
@@ -155,10 +194,18 @@ public class Movement : MonoBehaviour
         //Debug.Log("Angle: " + angleLeft);
         Vector3 newVector = Quaternion.Euler(0, angleLeft, 0) * directionToObstacle;
         //Debug.Log("New Vector: " + newVector);
-        RaycastHit hitCheck;
-        if (Physics.Raycast(transform.position, newVector, out hitCheck, 5))
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, newVector, out hit, 5))
         {
+            scanPointLeft = hit.point;
             CheckLeft();
         }
+    }
+
+    void calculateAvoidPoint()
+    {
+        avoidPoint = (directionToAvoidPoint + obstacleHitPoint);
+        Debug.Log("Avoid Point: " + avoidPoint);
+        marker.transform.position = avoidPoint;
     }
 }

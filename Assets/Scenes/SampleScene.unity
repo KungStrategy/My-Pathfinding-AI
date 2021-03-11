@@ -252,6 +252,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rallyPoint: {fileID: 1327341422}
+  marker: {fileID: 911232064}
 --- !u!136 &513989067
 CapsuleCollider:
   m_ObjectHideFlags: 0
