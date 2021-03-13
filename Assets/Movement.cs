@@ -18,6 +18,7 @@ public class Movement : MonoBehaviour
     Vector3 scanPointLeft;
     Vector3 avoidPoint;
     Vector3 directionToAvoidPoint;
+    Vector3 directionToCenter;
     float distanceToRallyPoint;
     float distanceToObstacle;
     float distanceToDecisionPoint;
@@ -29,6 +30,7 @@ public class Movement : MonoBehaviour
     float angleRight;
     float angleLeft;
     float timeCounter;
+    float startAngle;
     string obstacleName;
     bool pathClear = false;
     bool obstacleDetected = false;
@@ -70,6 +72,10 @@ public class Movement : MonoBehaviour
                 {
                     pathClear = false;
                     Debug.Log("Distance to center: " + distanceToCenter);
+                    directionToCenter = obstacle.transform.position - transform.position;
+                    distanceToCenter = Vector3.Distance(obstacle.transform.position, transform.position);
+                    startAngle = Vector3.Angle(obstacle.transform.position, transform.position);
+                    //timeCounter = startAngle;
                     ChooseRightOrLeft();
                 }
             }
@@ -98,10 +104,27 @@ public class Movement : MonoBehaviour
         if (walkingAroundObstacle == true)
         {
             timeCounter += Time.deltaTime * speed;
-            position.x = Mathf.Cos (timeCounter) * distanceToCenter;
+            float ratioXCenter = directionToCenter.x / distanceToCenter;
+            float ratioZCenter = directionToCenter.z / distanceToCenter;
+            //position.x = (Mathf.Cos(timeCounter) * distanceToCenter) + (2 * distanceToCenter * ratioXCenter);
+            //position.y = 0;
+            //position.z = (Mathf.Sin(timeCounter) * distanceToCenter) + (2 * distanceToCenter * ratioZCenter);
+
+            position.x = (Mathf.Cos(timeCounter) * distanceToCenter) + (distanceToCenter * directionToCenter.x);
             position.y = 0;
-            position.z = Mathf.Sin (timeCounter) * distanceToCenter;
+            position.z = (Mathf.Sin(timeCounter) * distanceToCenter) + (distanceToCenter * directionToCenter.z);
+
+            //position.x = (Mathf.Cos(timeCounter) * distanceToCenter) + (2 * ratioXCenter);
+            //position.y = 0;
+            //position.z = (Mathf.Sin(timeCounter) * distanceToCenter) + (2 * ratioZCenter);
+
             transform.position = position;
+            Debug.Log("Angle: " + startAngle);
+            Debug.Log("Direction to Center: " + directionToCenter);
+            Debug.Log("Distance to Center: " + distanceToCenter);
+            //Debug.Log("ratio X: " + ratioXCenter);
+            //Debug.Log("ratio Z: " + ratioZCenter);
+            //transform.RotateAround(obstacle.transform.position, Vector3.right, speed * Time.deltaTime);
         }
     }
 
