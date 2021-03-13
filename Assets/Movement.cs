@@ -28,11 +28,12 @@ public class Movement : MonoBehaviour
     float ratioZ;
     float angleRight;
     float angleLeft;
+    float timeCounter;
     string obstacleName;
     bool pathClear = false;
     bool obstacleDetected = false;
     //bool pathDecisionPoint = false;
-    bool pathAvoidPoint = false;
+    bool walkingAroundObstacle = false;
     //bool chooseLeftOrRightActivated = false;
 
     void Start() => position = transform.position;
@@ -69,6 +70,7 @@ public class Movement : MonoBehaviour
                 {
                     pathClear = false;
                     Debug.Log("Distance to center: " + distanceToCenter);
+                    ChooseRightOrLeft();
                 }
             }
 
@@ -93,9 +95,13 @@ public class Movement : MonoBehaviour
             }
         }*/
 
-        if (pathAvoidPoint == true)
+        if (walkingAroundObstacle == true)
         {
-
+            timeCounter += Time.deltaTime * speed;
+            position.x = Mathf.Cos (timeCounter) * distanceToCenter;
+            position.y = 0;
+            position.z = Mathf.Sin (timeCounter) * distanceToCenter;
+            transform.position = position;
         }
     }
 
@@ -127,12 +133,12 @@ public class Movement : MonoBehaviour
             {
                 //pathClear = false;
                 obstacleDetected = true;
-                Debug.Log("Obstacle: " + hitObstacle.point);
+                //Debug.Log("Obstacle: " + hitObstacle.point);
                 obstacleHitPoint = hitObstacle.point;
                 obstacleName = hitObstacle.transform.gameObject.name;
-                Debug.Log("Name: " + obstacleName);
+                //Debug.Log("Name: " + obstacleName);
                 obstacle = hitObstacle.transform.gameObject;
-                Debug.Log("Obstacle Center: " + obstacle.transform.position);
+                //Debug.Log("Obstacle Center: " + obstacle.transform.position);
                 //CalculateDecisionPoint();
             }
         }
@@ -161,14 +167,15 @@ public class Movement : MonoBehaviour
         if (angleRight < -angleLeft)
         {
             Debug.Log("choose right");
-            Debug.Log("Scan Point: " + scanPointRight);
+            //Debug.Log("Scan Point: " + scanPointRight);
             //directionToAvoidPoint = Quaternion.Euler(0, (angleRight + 10), 0) * directionToObstacle;
             //calculateAvoidPoint();
+            walkingAroundObstacle = true;
         }
         else
         {
             Debug.Log("choose left");
-            Debug.Log("Scan Point: " + scanPointLeft);
+            //Debug.Log("Scan Point: " + scanPointLeft);
             //directionToAvoidPoint = Quaternion.Euler(0, (angleLeft - 10), 0) * directionToObstacle;
             //calculateAvoidPoint();
         }
@@ -183,7 +190,7 @@ public class Movement : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(transform.position, newVector, out hit, 5))
         {
-            scanPointRight = hit.point;
+            //scanPointRight = hit.point;
             CheckRight();
         }
     }
@@ -197,15 +204,8 @@ public class Movement : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(transform.position, newVector, out hit, 5))
         {
-            scanPointLeft = hit.point;
+            //scanPointLeft = hit.point;
             CheckLeft();
         }
-    }
-
-    void calculateAvoidPoint()
-    {
-        avoidPoint = (directionToAvoidPoint + obstacleHitPoint);
-        Debug.Log("Avoid Point: " + avoidPoint);
-        marker.transform.position = avoidPoint;
     }
 }
