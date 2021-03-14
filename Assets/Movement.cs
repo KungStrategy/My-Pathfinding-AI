@@ -75,6 +75,7 @@ public class Movement : MonoBehaviour
                     directionToCenter = obstacle.transform.position - transform.position;
                     distanceToCenter = Vector3.Distance(obstacle.transform.position, transform.position);
                     startAngle = Vector3.Angle(obstacle.transform.position, transform.position);
+                    //Debug.DrawRay(transform.position, directionToCenter, Color.blue);
                     //timeCounter = startAngle;
                     ChooseRightOrLeft();
                 }
