@@ -19,6 +19,7 @@ public class Movement : MonoBehaviour
     Vector3 avoidPoint;
     Vector3 directionToAvoidPoint;
     Vector3 directionToCenter;
+    Vector3 positionPointSaver;
     float distanceToRallyPoint;
     float distanceToObstacle;
     float distanceToDecisionPoint;
@@ -60,7 +61,7 @@ public class Movement : MonoBehaviour
             ratioY = directionToRallyPoint.y / distanceToRallyPoint;
             ratioZ = directionToRallyPoint.z / distanceToRallyPoint;
             position.x += ratioX * speed * Time.deltaTime;
-            position.y = 1.5f;
+            position.y = transform.position.y;
             position.z += ratioZ * speed * Time.deltaTime;
             transform.position = position;
 
@@ -73,8 +74,17 @@ public class Movement : MonoBehaviour
                     pathClear = false;
                     Debug.Log("Distance to center: " + distanceToCenter);
                     directionToCenter = obstacle.transform.position - transform.position;
+
+                    Vector3 directionFromObstacleToSoldier = transform.position - obstacle.transform.position;
+
                     distanceToCenter = Vector3.Distance(obstacle.transform.position, transform.position);
-                    startAngle = Vector3.Angle(obstacle.transform.position, transform.position);
+                    //startAngle = Vector3.Angle(obstacle.transform.position, transform.position);
+
+                    startAngle = Vector3.Distance(transform.position, directionFromObstacleToSoldier);
+                    Debug.Log("Distance to Center: " + distanceToCenter);
+                    Debug.Log("position at start of circle: " + transform.position);
+                    positionPointSaver = transform.position;
+                    //Debug.Log("Direction to center: " + directionToCenter);
                     //Debug.DrawRay(transform.position, directionToCenter, Color.blue);
                     //timeCounter = startAngle;
                     ChooseRightOrLeft();
@@ -111,18 +121,23 @@ public class Movement : MonoBehaviour
             //position.y = 0;
             //position.z = (Mathf.Sin(timeCounter) * distanceToCenter) + (2 * distanceToCenter * ratioZCenter);
 
-            position.x = (Mathf.Cos(timeCounter) * distanceToCenter) + (distanceToCenter * directionToCenter.x);
-            position.y = 0;
-            position.z = (Mathf.Sin(timeCounter) * distanceToCenter) + (distanceToCenter * directionToCenter.z);
+            //position.x = (Mathf.Cos(timeCounter) * distanceToCenter) + (distanceToCenter * directionToCenter.x);
+            //position.y = 0;
+            //position.z = (Mathf.Sin(timeCounter) * distanceToCenter) + (distanceToCenter * directionToCenter.z);
 
             //position.x = (Mathf.Cos(timeCounter) * distanceToCenter) + (2 * ratioXCenter);
             //position.y = 0;
             //position.z = (Mathf.Sin(timeCounter) * distanceToCenter) + (2 * ratioZCenter);
 
+
+            position.x = (Mathf.Cos(timeCounter) * distanceToCenter) + (2 * (obstacle.transform.position.x - positionPointSaver.x));
+            position.y = transform.position.y;
+            position.z = (Mathf.Sin(timeCounter) * distanceToCenter) + (2 * (obstacle.transform.position.z - positionPointSaver.z));
+
             transform.position = position;
-            Debug.Log("Angle: " + startAngle);
-            Debug.Log("Direction to Center: " + directionToCenter);
-            Debug.Log("Distance to Center: " + distanceToCenter);
+            //Debug.Log("Angle: " + startAngle);
+            //Debug.Log("Direction to Center: " + directionToCenter);
+            
             //Debug.Log("ratio X: " + ratioXCenter);
             //Debug.Log("ratio Z: " + ratioZCenter);
             //transform.RotateAround(obstacle.transform.position, Vector3.right, speed * Time.deltaTime);
