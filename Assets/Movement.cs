@@ -20,6 +20,7 @@ public class Movement : MonoBehaviour
     Vector3 directionToAvoidPoint;
     Vector3 directionToCenter;
     Vector3 positionPointSaver;
+    Vector3 positionAdjuster;
     float distanceToRallyPoint;
     float distanceToObstacle;
     float distanceToDecisionPoint;
@@ -84,6 +85,11 @@ public class Movement : MonoBehaviour
                     Debug.Log("Distance to Center: " + distanceToCenter);
                     Debug.Log("position at start of circle: " + transform.position);
                     positionPointSaver = transform.position;
+                    
+                    //positionAdjuster.x = (2 * (obstacle.transform.position.x - positionPointSaver.x));
+                    //positionAdjuster.y = positionPointSaver.y;
+                    //positionAdjuster.z = (2 * (obstacle.transform.position.z - positionPointSaver.z));
+                    //Debug.Log("Center of circle: " + positionAdjuster);
                     //Debug.Log("Direction to center: " + directionToCenter);
                     //Debug.DrawRay(transform.position, directionToCenter, Color.blue);
                     //timeCounter = startAngle;
@@ -130,9 +136,13 @@ public class Movement : MonoBehaviour
             //position.z = (Mathf.Sin(timeCounter) * distanceToCenter) + (2 * ratioZCenter);
 
 
-            position.x = (Mathf.Cos(timeCounter) * distanceToCenter) + (2 * (obstacle.transform.position.x - positionPointSaver.x));
+            //position.x = (Mathf.Cos(timeCounter) * distanceToCenter) + (2 * (obstacle.transform.position.x - positionPointSaver.x));
+            //position.y = transform.position.y;
+            //position.z = (Mathf.Sin(timeCounter) * distanceToCenter) + (2 * (obstacle.transform.position.z - positionPointSaver.z));
+
+            position.x = (Mathf.Cos(timeCounter) * distanceToCenter) + obstacle.transform.position.x;
             position.y = transform.position.y;
-            position.z = (Mathf.Sin(timeCounter) * distanceToCenter) + (2 * (obstacle.transform.position.z - positionPointSaver.z));
+            position.z = (Mathf.Sin(timeCounter) * distanceToCenter) + obstacle.transform.position.z;
 
             transform.position = position;
             //Debug.Log("Angle: " + startAngle);
