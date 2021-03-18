@@ -81,9 +81,15 @@ public class Movement : MonoBehaviour
                     distanceToCenter = Vector3.Distance(obstacle.transform.position, transform.position);
                     //startAngle = Vector3.Angle(obstacle.transform.position, transform.position);
 
-                    startAngle = Vector3.Distance(transform.position, directionFromObstacleToSoldier);
-                    Debug.Log("Distance to Center: " + distanceToCenter);
-                    Debug.Log("position at start of circle: " + transform.position);
+                    //startAngle = Vector3.Distance(transform.position, directionFromObstacleToSoldier);
+
+                    //startAngle = Vector3.Angle(obstacle.transform.position, transform.position);
+                    //Debug.Log("angle: " + startAngle);
+                    float otherAngle = Mathf.Atan(directionToCenter.z / directionToCenter.x) * Mathf.Rad2Deg;
+                    Debug.Log("Other Angle: " + otherAngle);
+                    //Debug.Log("Distance to Center: " + distanceToCenter);
+                    //Debug.Log("position at start of circle: " + transform.position);
+                    Debug.Log("Direction to Center: " + directionToCenter);
                     positionPointSaver = transform.position;
                     
                     //positionAdjuster.x = (2 * (obstacle.transform.position.x - positionPointSaver.x));
@@ -92,7 +98,7 @@ public class Movement : MonoBehaviour
                     //Debug.Log("Center of circle: " + positionAdjuster);
                     //Debug.Log("Direction to center: " + directionToCenter);
                     //Debug.DrawRay(transform.position, directionToCenter, Color.blue);
-                    //timeCounter = startAngle;
+                    timeCounter = otherAngle;
                     ChooseRightOrLeft();
                 }
             }
