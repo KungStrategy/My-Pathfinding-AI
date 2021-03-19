@@ -85,7 +85,7 @@ public class Movement : MonoBehaviour
 
                     //startAngle = Vector3.Angle(obstacle.transform.position, transform.position);
                     //Debug.Log("angle: " + startAngle);
-                    float otherAngle = Mathf.Atan(directionToCenter.z / directionToCenter.x) * Mathf.Rad2Deg;
+                    float otherAngle = Mathf.Atan(directionToCenter.z / directionToCenter.x);
                     Debug.Log("Other Angle: " + otherAngle);
                     //Debug.Log("Distance to Center: " + distanceToCenter);
                     //Debug.Log("position at start of circle: " + transform.position);
