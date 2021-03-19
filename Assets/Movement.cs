@@ -12,18 +12,10 @@ public class Movement : MonoBehaviour
     Vector3 directionOfAim;
     Vector3 obstacleHitPoint;
     Vector3 directionToObstacle;
-    Vector3 decisionPoint;
-    Vector3 directionToDecisionPoint;
-    Vector3 scanPointRight;
-    Vector3 scanPointLeft;
-    Vector3 avoidPoint;
-    Vector3 directionToAvoidPoint;
     Vector3 directionToCenter;
     Vector3 positionPointSaver;
-    Vector3 positionAdjuster;
     float distanceToRallyPoint;
     float distanceToObstacle;
-    float distanceToDecisionPoint;
     float distanceToCenter;
     float speed = 2f;
     float ratioX;
@@ -33,12 +25,11 @@ public class Movement : MonoBehaviour
     float angleLeft;
     float timeCounter;
     float startAngle;
-    string obstacleName;
+    float exitLoopDistance;
     bool pathClear = false;
     bool obstacleDetected = false;
-    //bool pathDecisionPoint = false;
     bool walkingAroundObstacle = false;
-    //bool chooseLeftOrRightActivated = false;
+    string directionOfTravel;
 
     void Start() => position = transform.position;
 
@@ -73,11 +64,7 @@ public class Movement : MonoBehaviour
                 if (distanceToCenter <= 2)
                 {
                     pathClear = false;
-                    Debug.Log("Distance to center: " + distanceToCenter);
                     directionToCenter = obstacle.transform.position - transform.position;
-
-                    Vector3 directionFromObstacleToSoldier = transform.position - obstacle.transform.position;
-
                     distanceToCenter = Vector3.Distance(obstacle.transform.position, transform.position);
                     
                     if (directionToCenter.x <= 0)
@@ -88,21 +75,8 @@ public class Movement : MonoBehaviour
                     {
                         startAngle = Mathf.Atan(directionToCenter.z / directionToCenter.x) + Mathf.PI;
                     }
-
-                    Debug.Log("angle: " + startAngle);
-                    //float otherAngle = Mathf.Atan(directionToCenter.z / directionToCenter.x);
                     
-                    //Debug.Log("Distance to Center: " + distanceToCenter);
-                    //Debug.Log("position at start of circle: " + transform.position);
-                    Debug.Log("Direction to Center: " + directionToCenter);
                     positionPointSaver = transform.position;
-                    
-                    //positionAdjuster.x = (2 * (obstacle.transform.position.x - positionPointSaver.x));
-                    //positionAdjuster.y = positionPointSaver.y;
-                    //positionAdjuster.z = (2 * (obstacle.transform.position.z - positionPointSaver.z));
-                    //Debug.Log("Center of circle: " + positionAdjuster);
-                    //Debug.Log("Direction to center: " + directionToCenter);
-                    //Debug.DrawRay(transform.position, directionToCenter, Color.blue);
                     timeCounter = startAngle;
                     ChooseRightOrLeft();
                 }
@@ -112,15 +86,24 @@ public class Movement : MonoBehaviour
 
         if (walkingAroundObstacle == true)
         {
-            timeCounter += Time.deltaTime * speed;
+            if (directionOfTravel == "CounterClockwise")
+            {
+                timeCounter += Time.deltaTime * speed;
+            }
+            else
+            {
+                timeCounter -= Time.deltaTime * speed;
+            }
 
             position.x = (Mathf.Cos(timeCounter) * distanceToCenter) + obstacle.transform.position.x;
             position.y = transform.position.y;
             position.z = (Mathf.Sin(timeCounter) * distanceToCenter) + obstacle.transform.position.z;
 
             transform.position = position;
-            //Debug.Log("Angle: " + startAngle);
-            //Debug.Log("Direction to Center: " + directionToCenter);
+            if(distanceToRallyPoint <= exitLoopDistance)
+            {
+                walkingAroundObstacle = false;
+            }
         }
     }
 
@@ -154,8 +137,6 @@ public class Movement : MonoBehaviour
                 obstacleDetected = true;
                 //Debug.Log("Obstacle: " + hitObstacle.point);
                 obstacleHitPoint = hitObstacle.point;
-                obstacleName = hitObstacle.transform.gameObject.name;
-                //Debug.Log("Name: " + obstacleName);
                 obstacle = hitObstacle.transform.gameObject;
                 //Debug.Log("Obstacle Center: " + obstacle.transform.position);
                 //CalculateDecisionPoint();
@@ -170,18 +151,13 @@ public class Movement : MonoBehaviour
         CheckLeft();
         if (angleRight < -angleLeft)
         {
-            Debug.Log("choose right");
-            //Debug.Log("Scan Point: " + scanPointRight);
-            //directionToAvoidPoint = Quaternion.Euler(0, (angleRight + 10), 0) * directionToObstacle;
-            //calculateAvoidPoint();
             walkingAroundObstacle = true;
+            directionOfTravel = "CounterClockwise";
         }
         else
         {
-            Debug.Log("choose left");
-            //Debug.Log("Scan Point: " + scanPointLeft);
-            //directionToAvoidPoint = Quaternion.Euler(0, (angleLeft - 10), 0) * directionToObstacle;
-            //calculateAvoidPoint();
+            walkingAroundObstacle = true;
+            directionOfTravel = "Clockwise";
         }
     }
 
@@ -194,7 +170,6 @@ public class Movement : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(transform.position, newVector, out hit, 5))
         {
-            //scanPointRight = hit.point;
             CheckRight();
         }
     }
@@ -208,8 +183,13 @@ public class Movement : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(transform.position, newVector, out hit, 5))
         {
-            //scanPointLeft = hit.point;
             CheckLeft();
         }
+    }
+
+    void CalculateExitPoint()
+    {
+        float temporaryVariable = Vector3.Distance(rallyPoint.transform.position, positionPointSaver);
+        exitLoopDistance = temporaryVariable - (2 * distanceToCenter);
     }
 }
