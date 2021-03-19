@@ -79,14 +79,19 @@ public class Movement : MonoBehaviour
                     Vector3 directionFromObstacleToSoldier = transform.position - obstacle.transform.position;
 
                     distanceToCenter = Vector3.Distance(obstacle.transform.position, transform.position);
-                    //startAngle = Vector3.Angle(obstacle.transform.position, transform.position);
+                    
+                    if (directionToCenter.x <= 0)
+                    {
+                        startAngle = Mathf.Atan(directionToCenter.z / directionToCenter.x);
+                    }
+                    else
+                    {
+                        startAngle = Mathf.Atan(directionToCenter.z / directionToCenter.x) + Mathf.PI;
+                    }
 
-                    //startAngle = Vector3.Distance(transform.position, directionFromObstacleToSoldier);
-
-                    //startAngle = Vector3.Angle(obstacle.transform.position, transform.position);
-                    //Debug.Log("angle: " + startAngle);
-                    float otherAngle = Mathf.Atan(directionToCenter.z / directionToCenter.x);
-                    Debug.Log("Other Angle: " + otherAngle);
+                    Debug.Log("angle: " + startAngle);
+                    //float otherAngle = Mathf.Atan(directionToCenter.z / directionToCenter.x);
+                    
                     //Debug.Log("Distance to Center: " + distanceToCenter);
                     //Debug.Log("position at start of circle: " + transform.position);
                     Debug.Log("Direction to Center: " + directionToCenter);
@@ -98,53 +103,16 @@ public class Movement : MonoBehaviour
                     //Debug.Log("Center of circle: " + positionAdjuster);
                     //Debug.Log("Direction to center: " + directionToCenter);
                     //Debug.DrawRay(transform.position, directionToCenter, Color.blue);
-                    timeCounter = otherAngle;
+                    timeCounter = startAngle;
                     ChooseRightOrLeft();
                 }
             }
 
         }
-        
-        /*if (pathDecisionPoint == true)
-        {
-            directionToDecisionPoint = decisionPoint - transform.position;
-            distanceToDecisionPoint = Vector3.Distance(decisionPoint, transform.position);
-            ratioX = directionToDecisionPoint.x / distanceToDecisionPoint;
-            ratioY = directionToDecisionPoint.y / distanceToDecisionPoint;
-            ratioZ = directionToDecisionPoint.z / distanceToDecisionPoint;
-            position.x += ratioX * speed * Time.deltaTime;
-            position.y = 1.5f;
-            position.z += ratioZ * speed * Time.deltaTime;
-            transform.position = position;
-            if (distanceToDecisionPoint <= 0.001)
-            {
-                
-                //ChooseRightOrLeft();
-                pathDecisionPoint = false;
-            }
-        }*/
 
         if (walkingAroundObstacle == true)
         {
             timeCounter += Time.deltaTime * speed;
-            float ratioXCenter = directionToCenter.x / distanceToCenter;
-            float ratioZCenter = directionToCenter.z / distanceToCenter;
-            //position.x = (Mathf.Cos(timeCounter) * distanceToCenter) + (2 * distanceToCenter * ratioXCenter);
-            //position.y = 0;
-            //position.z = (Mathf.Sin(timeCounter) * distanceToCenter) + (2 * distanceToCenter * ratioZCenter);
-
-            //position.x = (Mathf.Cos(timeCounter) * distanceToCenter) + (distanceToCenter * directionToCenter.x);
-            //position.y = 0;
-            //position.z = (Mathf.Sin(timeCounter) * distanceToCenter) + (distanceToCenter * directionToCenter.z);
-
-            //position.x = (Mathf.Cos(timeCounter) * distanceToCenter) + (2 * ratioXCenter);
-            //position.y = 0;
-            //position.z = (Mathf.Sin(timeCounter) * distanceToCenter) + (2 * ratioZCenter);
-
-
-            //position.x = (Mathf.Cos(timeCounter) * distanceToCenter) + (2 * (obstacle.transform.position.x - positionPointSaver.x));
-            //position.y = transform.position.y;
-            //position.z = (Mathf.Sin(timeCounter) * distanceToCenter) + (2 * (obstacle.transform.position.z - positionPointSaver.z));
 
             position.x = (Mathf.Cos(timeCounter) * distanceToCenter) + obstacle.transform.position.x;
             position.y = transform.position.y;
@@ -153,10 +121,6 @@ public class Movement : MonoBehaviour
             transform.position = position;
             //Debug.Log("Angle: " + startAngle);
             //Debug.Log("Direction to Center: " + directionToCenter);
-            
-            //Debug.Log("ratio X: " + ratioXCenter);
-            //Debug.Log("ratio Z: " + ratioZCenter);
-            //transform.RotateAround(obstacle.transform.position, Vector3.right, speed * Time.deltaTime);
         }
     }
 
@@ -198,21 +162,6 @@ public class Movement : MonoBehaviour
             }
         }
     }
-
-    /*void CalculateDecisionPoint()
-    {
-        directionToObstacle = obstacleHitPoint - transform.position;
-        distanceToObstacle = Vector3.Distance(obstacleHitPoint, transform.position);
-        float ratioXDecision = directionToObstacle.x / distanceToObstacle;
-        float ratioYDecision = directionToObstacle.y / distanceToObstacle;
-        float ratioZDecision = directionToObstacle.z / distanceToObstacle;
-        decisionPoint.x = obstacleHitPoint.x - (ratioXDecision * 1f);
-        decisionPoint.y = obstacleHitPoint.y - (ratioYDecision * 1f);
-        decisionPoint.z = obstacleHitPoint.z - (ratioZDecision * 1f);
-        pathDecisionPoint = true;
-        Debug.Log("decision point: " + decisionPoint);
-        
-    }*/
 
     void ChooseRightOrLeft()
     {
