@@ -18,6 +18,7 @@ public class Movement : MonoBehaviour
     float distanceToObstacle;
     float distanceToCenter;
     float speed = 2f;
+    float angularSpeed;
     float ratioX;
     float ratioY;
     float ratioZ;
@@ -77,6 +78,9 @@ public class Movement : MonoBehaviour
                     }
                     
                     positionPointSaver = transform.position;
+                    Debug.Log("Intersection Point: " + positionPointSaver);
+                    Debug.Log("radius: " + distanceToCenter);
+                    Debug.Log("Rally Point Vector" + directionToRallyPoint);
                     timeCounter = startAngle;
                     ChooseRightOrLeft();
                 }
@@ -88,11 +92,11 @@ public class Movement : MonoBehaviour
         {
             if (directionOfTravel == "CounterClockwise")
             {
-                timeCounter += Time.deltaTime * speed;
+                timeCounter += Time.deltaTime; // * speed;
             }
             else
             {
-                timeCounter -= Time.deltaTime * speed;
+                timeCounter -= Time.deltaTime; // * speed;
             }
 
             position.x = (Mathf.Cos(timeCounter) * distanceToCenter) + obstacle.transform.position.x;
@@ -139,7 +143,6 @@ public class Movement : MonoBehaviour
                 obstacleHitPoint = hitObstacle.point;
                 obstacle = hitObstacle.transform.gameObject;
                 //Debug.Log("Obstacle Center: " + obstacle.transform.position);
-                //CalculateDecisionPoint();
             }
         }
     }
@@ -153,11 +156,13 @@ public class Movement : MonoBehaviour
         {
             walkingAroundObstacle = true;
             directionOfTravel = "CounterClockwise";
+            //CalculateExitPoint();
         }
         else
         {
             walkingAroundObstacle = true;
             directionOfTravel = "Clockwise";
+            //CalculateExitPoint();
         }
     }
 
