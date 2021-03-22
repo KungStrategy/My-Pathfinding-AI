@@ -18,7 +18,7 @@ public class Movement : MonoBehaviour
     float distanceToObstacle;
     float distanceToCenter;
     float speed = 2f;
-    float angularSpeed;
+    //float angularSpeedConverter;
     float ratioX;
     float ratioY;
     float ratioZ;
@@ -82,6 +82,7 @@ public class Movement : MonoBehaviour
                     Debug.Log("radius: " + distanceToCenter);
                     Debug.Log("Rally Point Vector" + directionToRallyPoint);
                     timeCounter = startAngle;
+
                     ChooseRightOrLeft();
                 }
             }
@@ -92,11 +93,11 @@ public class Movement : MonoBehaviour
         {
             if (directionOfTravel == "CounterClockwise")
             {
-                timeCounter += Time.deltaTime; // * speed;
+                timeCounter += Time.deltaTime * (speed / distanceToCenter);
             }
             else
             {
-                timeCounter -= Time.deltaTime; // * speed;
+                timeCounter -= Time.deltaTime * (speed / distanceToCenter); // * speed;
             }
 
             position.x = (Mathf.Cos(timeCounter) * distanceToCenter) + obstacle.transform.position.x;
