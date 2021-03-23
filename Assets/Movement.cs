@@ -7,6 +7,8 @@ public class Movement : MonoBehaviour
     public GameObject rallyPoint;
     public GameObject marker;
     GameObject obstacle;
+    //CircleCollider2D circ;
+    CapsuleCollider col;
     Vector3 position;
     Vector3 directionToRallyPoint;
     Vector3 directionOfAim;
@@ -14,6 +16,7 @@ public class Movement : MonoBehaviour
     Vector3 directionToObstacle;
     Vector3 directionToCenter;
     Vector3 positionPointSaver;
+    Vector3 exitCirclePoint;
     float distanceToRallyPoint;
     float distanceToObstacle;
     float distanceToCenter;
@@ -26,7 +29,7 @@ public class Movement : MonoBehaviour
     float angleLeft;
     float timeCounter;
     float startAngle;
-    float exitLoopDistance;
+    //float exitLoopDistance;
     bool pathClear = false;
     bool obstacleDetected = false;
     bool walkingAroundObstacle = false;
@@ -36,7 +39,7 @@ public class Movement : MonoBehaviour
 
     void Update()
     {
-        directionToRallyPoint = rallyPoint.transform.position - transform.position;
+        //directionToRallyPoint = rallyPoint.transform.position - transform.position;
         distanceToRallyPoint = Vector3.Distance(rallyPoint.transform.position, transform.position);
 
         if (Input.touchCount > 0)
@@ -80,9 +83,10 @@ public class Movement : MonoBehaviour
                     positionPointSaver = transform.position;
                     Debug.Log("Intersection Point: " + positionPointSaver);
                     Debug.Log("radius: " + distanceToCenter);
-                    Debug.Log("Rally Point Vector" + directionToRallyPoint);
+                    //Debug.Log("Rally Point Vector" + directionToRallyPoint);
+                    //Debug.Log("AIM Vector" + directionOfAim);
                     timeCounter = startAngle;
-
+                    //Debug.DrawRay(positionPointSaver, directionToRallyPoint, Color.blue, 1000f);
                     ChooseRightOrLeft();
                 }
             }
@@ -105,10 +109,10 @@ public class Movement : MonoBehaviour
             position.z = (Mathf.Sin(timeCounter) * distanceToCenter) + obstacle.transform.position.z;
 
             transform.position = position;
-            if(distanceToRallyPoint <= exitLoopDistance)
+            /*if(distanceToRallyPoint <= exitLoopDistance)
             {
                 walkingAroundObstacle = false;
-            }
+            }*/
         }
     }
 
@@ -132,6 +136,8 @@ public class Movement : MonoBehaviour
         distanceToRallyPoint = Vector3.Distance(rallyPoint.transform.position, transform.position);
         directionOfAim = directionToRallyPoint;
         directionOfAim.y += 1f;
+        Debug.Log("Rally Point Vector" + directionToRallyPoint);
+        Debug.Log("AIM Vector" + directionOfAim);
         RaycastHit hitObstacle;
         if (Physics.Raycast(transform.position, directionOfAim, out hitObstacle, distanceToRallyPoint))
         {
@@ -165,6 +171,7 @@ public class Movement : MonoBehaviour
             directionOfTravel = "Clockwise";
             //CalculateExitPoint();
         }
+        CalculateExitPoint();
     }
 
     void CheckRight()
@@ -195,7 +202,20 @@ public class Movement : MonoBehaviour
 
     void CalculateExitPoint()
     {
-        float temporaryVariable = Vector3.Distance(rallyPoint.transform.position, positionPointSaver);
-        exitLoopDistance = temporaryVariable - (2 * distanceToCenter);
+        Debug.Log("CalculateExitPoint");
+        col = obstacle.GetComponent<CapsuleCollider>();
+        col.radius = distanceToCenter;
+        Debug.DrawRay(positionPointSaver, directionOfAim, Color.blue, 1000f);
+        RaycastHit hit;
+        if (Physics.Raycast(positionPointSaver, directionOfAim, out hit, 4))
+        {
+            if (hit.collider)
+            {
+                exitCirclePoint = hit.point;
+                Debug.Log("Exit Point: " + exitCirclePoint);
+            }
+        }
+        //float temporaryVariable = Vector3.Distance(rallyPoint.transform.position, positionPointSaver);
+        //exitLoopDistance = temporaryVariable - (2 * distanceToCenter);
     }
 }
