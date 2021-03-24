@@ -15,8 +15,10 @@ public class Movement : MonoBehaviour
     Vector3 obstacleHitPoint;
     Vector3 directionToObstacle;
     Vector3 directionToCenter;
+    Vector3 startPositionPointSaver;
     Vector3 positionPointSaver;
     Vector3 exitCirclePoint;
+
     float distanceToRallyPoint;
     float distanceToObstacle;
     float distanceToCenter;
@@ -29,7 +31,11 @@ public class Movement : MonoBehaviour
     float angleLeft;
     float timeCounter;
     float startAngle;
-    //float exitLoopDistance;
+    float a, b, c;
+    float bb4ac;
+    float mu1;
+    float mu2;
+    float exitLoopDistance;
     bool pathClear = false;
     bool obstacleDetected = false;
     bool walkingAroundObstacle = false;
@@ -40,7 +46,7 @@ public class Movement : MonoBehaviour
     void Update()
     {
         //directionToRallyPoint = rallyPoint.transform.position - transform.position;
-        distanceToRallyPoint = Vector3.Distance(rallyPoint.transform.position, transform.position);
+        //distanceToRallyPoint = Vector3.Distance(rallyPoint.transform.position, transform.position);
 
         if (Input.touchCount > 0)
         {
@@ -53,6 +59,9 @@ public class Movement : MonoBehaviour
 
         if (pathClear == true)
         {
+            directionToRallyPoint = rallyPoint.transform.position - transform.position;
+            distanceToRallyPoint = Vector3.Distance(rallyPoint.transform.position, transform.position); //- (transform.position.y - rallyPoint.transform.position.y);
+            //Debug.Log("Distance to Rally Point: " + distanceToRallyPoint);
             ratioX = directionToRallyPoint.x / distanceToRallyPoint;
             ratioY = directionToRallyPoint.y / distanceToRallyPoint;
             ratioZ = directionToRallyPoint.z / distanceToRallyPoint;
@@ -60,6 +69,10 @@ public class Movement : MonoBehaviour
             position.y = transform.position.y;
             position.z += ratioZ * speed * Time.deltaTime;
             transform.position = position;
+            if (distanceToRallyPoint == 0)
+            {
+                pathClear = false;
+            }
 
             if (obstacleDetected == true)
             {
@@ -109,15 +122,20 @@ public class Movement : MonoBehaviour
             position.z = (Mathf.Sin(timeCounter) * distanceToCenter) + obstacle.transform.position.z;
 
             transform.position = position;
-            /*if(distanceToRallyPoint <= exitLoopDistance)
+            exitLoopDistance = Vector3.Distance(exitCirclePoint, transform.position);
+            //Debug.Log("position: " + position);
+            //Debug.Log("exit distance: " + exitLoopDistance);
+            if(exitLoopDistance < 0.01)
             {
                 walkingAroundObstacle = false;
-            }*/
+                pathClear = true;
+            }
         }
     }
 
     void ReasignRallyPoint()
     {
+        startPositionPointSaver = transform.position;
         RaycastHit hit;
         Touch touch = Input.GetTouch(0);
         Vector3 touchPosition = touch.position;
@@ -202,19 +220,38 @@ public class Movement : MonoBehaviour
 
     void CalculateExitPoint()
     {
-        Debug.Log("CalculateExitPoint");
-        col = obstacle.GetComponent<CapsuleCollider>();
-        col.radius = distanceToCenter;
-        Debug.DrawRay(positionPointSaver, directionOfAim, Color.blue, 1000f);
+        a = directionToRallyPoint.x * directionToRallyPoint.x + directionToRallyPoint.z * directionToRallyPoint.z;
+        b = 2 * (directionToRallyPoint.x * (startPositionPointSaver.x - obstacle.transform.position.x) + directionToRallyPoint.z * (startPositionPointSaver.z - obstacle.transform.position.z));
+        c = obstacle.transform.position.x * obstacle.transform.position.x + obstacle.transform.position.z * obstacle.transform.position.z;
+        c += startPositionPointSaver.x * startPositionPointSaver.x + startPositionPointSaver.z * startPositionPointSaver.z;
+        c -= 2 * (obstacle.transform.position.x * startPositionPointSaver.x + obstacle.transform.position.z * startPositionPointSaver.z);
+        c -= distanceToCenter * distanceToCenter;
+        bb4ac = b * b - 4 * a * c;
+        /*if (Mathf.Abs(a) < float.Epsilon || bb4ac < 0)
+        {
+            //  line does not intersect
+            return new Vector3[] { Vector3.zero, Vector3.zero };
+        }*/
+        mu1 = (-b + Mathf.Sqrt(bb4ac)) / (2 * a);
+        mu2 = (-b - Mathf.Sqrt(bb4ac)) / (2 * a);
+        //sect = new Vector3[2];
+        exitCirclePoint = new Vector3(startPositionPointSaver.x + mu1 * directionToRallyPoint.x, transform.position.y, startPositionPointSaver.z + mu1 * directionToRallyPoint.z);
+        //sect[1] = new Vector3(startPositionPointSaver.x + mu2 * directionToRallyPoint.x, transform.position.y, startPositionPointSaver.z + mu2 * directionToRallyPoint.z);
+        Debug.Log("points of intersection: " + exitCirclePoint);
+
+        //Debug.Log("CalculateExitPoint");
+        //col = obstacle.GetComponent<CapsuleCollider>();
+        //col.radius = distanceToCenter / obstacle.transform.localScale.x;
+        /*Debug.DrawRay(startPositionPointSaver, directionOfAim, Color.blue, 1000f);
         RaycastHit hit;
-        if (Physics.Raycast(positionPointSaver, directionOfAim, out hit, 4))
+        if (Physics.Raycast(startPositionPointSaver, directionOfAim, out hit, distanceToRallyPoint))
         {
             if (hit.collider)
             {
                 exitCirclePoint = hit.point;
                 Debug.Log("Exit Point: " + exitCirclePoint);
             }
-        }
+        }*/
         //float temporaryVariable = Vector3.Distance(rallyPoint.transform.position, positionPointSaver);
         //exitLoopDistance = temporaryVariable - (2 * distanceToCenter);
     }
