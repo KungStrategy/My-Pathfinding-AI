@@ -78,7 +78,7 @@ public class Movement : MonoBehaviour
             {
                 distanceToCenter = Vector3.Distance(obstacle.transform.position, transform.position);
 
-                if (distanceToCenter <= 2)
+                if (distanceToCenter <= ((obstacle.transform.localScale.x/2) +1))
                 {
                     pathClear = false;
                     directionToCenter = obstacle.transform.position - transform.position;
@@ -94,8 +94,8 @@ public class Movement : MonoBehaviour
                     }
                     
                     positionPointSaver = transform.position;
-                    Debug.Log("Intersection Point: " + positionPointSaver);
-                    Debug.Log("radius: " + distanceToCenter);
+                    //Debug.Log("Intersection Point: " + positionPointSaver);
+                    //Debug.Log("radius: " + distanceToCenter);
                     //Debug.Log("Rally Point Vector" + directionToRallyPoint);
                     //Debug.Log("AIM Vector" + directionOfAim);
                     timeCounter = startAngle;
@@ -123,12 +123,11 @@ public class Movement : MonoBehaviour
 
             transform.position = position;
             exitLoopDistance = Vector3.Distance(exitCirclePoint, transform.position);
-            //Debug.Log("position: " + position);
-            //Debug.Log("exit distance: " + exitLoopDistance);
             if(exitLoopDistance < 0.01)
             {
                 walkingAroundObstacle = false;
                 pathClear = true;
+                CheckPath();
             }
         }
     }
@@ -154,8 +153,8 @@ public class Movement : MonoBehaviour
         distanceToRallyPoint = Vector3.Distance(rallyPoint.transform.position, transform.position);
         directionOfAim = directionToRallyPoint;
         directionOfAim.y += 1f;
-        Debug.Log("Rally Point Vector" + directionToRallyPoint);
-        Debug.Log("AIM Vector" + directionOfAim);
+        //Debug.Log("Rally Point Vector" + directionToRallyPoint);
+        //Debug.Log("AIM Vector" + directionOfAim);
         RaycastHit hitObstacle;
         if (Physics.Raycast(transform.position, directionOfAim, out hitObstacle, distanceToRallyPoint))
         {
@@ -237,7 +236,7 @@ public class Movement : MonoBehaviour
         //sect = new Vector3[2];
         exitCirclePoint = new Vector3(startPositionPointSaver.x + mu1 * directionToRallyPoint.x, transform.position.y, startPositionPointSaver.z + mu1 * directionToRallyPoint.z);
         //sect[1] = new Vector3(startPositionPointSaver.x + mu2 * directionToRallyPoint.x, transform.position.y, startPositionPointSaver.z + mu2 * directionToRallyPoint.z);
-        Debug.Log("points of intersection: " + exitCirclePoint);
+        //Debug.Log("points of intersection: " + exitCirclePoint);
 
         //Debug.Log("CalculateExitPoint");
         //col = obstacle.GetComponent<CapsuleCollider>();
