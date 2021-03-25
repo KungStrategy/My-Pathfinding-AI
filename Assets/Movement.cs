@@ -28,8 +28,10 @@ public class Movement : MonoBehaviour
 
     void Update()
     {
+        //checks for input from player
         if (Input.touchCount > 0)
         {
+            //makes sure the functions are only called once
             if (Input.GetTouch(0).phase == TouchPhase.Began)
             {
                 ReasignRallyPoint();
@@ -37,32 +39,36 @@ public class Movement : MonoBehaviour
             }
         }
 
+        //normal walking script
         if (pathClear == true)
         {
             directionToRallyPoint = rallyPoint.transform.position - transform.position;
             distanceToRallyPoint = Vector3.Distance(rallyPoint.transform.position, transform.position);
-            float ratioX;
-            float ratioZ;
-            ratioX = directionToRallyPoint.x / distanceToRallyPoint;
-            ratioZ = directionToRallyPoint.z / distanceToRallyPoint;
+            //calculates x and y components of direction
+            float ratioX = directionToRallyPoint.x / distanceToRallyPoint;
+            float ratioZ = directionToRallyPoint.z / distanceToRallyPoint;
             position.x += ratioX * speed * Time.deltaTime;
             position.y = transform.position.y;
             position.z += ratioZ * speed * Time.deltaTime;
+            //moves the soldier
             transform.position = position;
 
+            //what to do if CheckPath() spots an obstacle
             if (obstacleDetected == true)
             {
                 radius = Vector3.Distance(obstacle.transform.position, transform.position);
-
+                //stay on path untill close to obstacle
                 if (radius <= ((obstacle.transform.localScale.x/2) +1))
                 {
                     pathClear = false;
                     directionToCenter = obstacle.transform.position - transform.position;
                     radius = Vector3.Distance(obstacle.transform.position, transform.position);
+                    //calculate the angle between the center of the obstacle and the soldier
                     if (directionToCenter.x <= 0)
                     {
                         radians = Mathf.Atan(directionToCenter.z / directionToCenter.x);
                     }
+                    //adds 180 degs because unity angles start over at 180
                     else
                     {
                         radians = Mathf.Atan(directionToCenter.z / directionToCenter.x) + Mathf.PI;
@@ -73,6 +79,7 @@ public class Movement : MonoBehaviour
             }
         }
 
+        //send the soldier walking in a cirle around obstacle
         if (walkingAroundObstacle == true)
         {
             if (directionOfTravel == "CounterClockwise")
@@ -83,21 +90,25 @@ public class Movement : MonoBehaviour
             {
                 radians -= Time.deltaTime * (speed / radius);
             }
+            //cos and sin make the circle, must add obstacle position to adjust center
             position.x = (Mathf.Cos(radians) * radius) + obstacle.transform.position.x;
             position.y = transform.position.y;
             position.z = (Mathf.Sin(radians) * radius) + obstacle.transform.position.z;
             transform.position = position;
+            //checks to when the soldier should stop circling
             exitCircleDistance = Vector3.Distance(exitCirclePoint, transform.position);
             if(exitCircleDistance < 0.01)
             {
                 walkingAroundObstacle = false;
                 obstacleDetected = false;
                 pathClear = true;
+                // check to see if there is another obstacle
                 CheckPath();
             }
         }
     }
 
+    //moves the rally point to where ever the player touches
     void ReasignRallyPoint()
     {
         RaycastHit hit;
@@ -112,14 +123,17 @@ public class Movement : MonoBehaviour
         }
     }
 
+    //checks to see if there is an obstacle between the soldier and the rally point
     void CheckPath()
     {
         directionToRallyPoint = rallyPoint.transform.position - transform.position;
         directionOfAim = directionToRallyPoint;
+        //adjusts the vector so that it is not aiming at the ground
         directionOfAim.y += 1;
         RaycastHit hit;
         if (Physics.Raycast(transform.position, directionOfAim, out hit, Mathf.Infinity))
         {
+            //verifies that what it hit is an obstacle
             if (hit.transform.gameObject.tag == "Avoid")
             {
                 obstacleDetected = true;
@@ -128,6 +142,7 @@ public class Movement : MonoBehaviour
         }
     }
 
+    //sees what direction is faster to get around the obstacle
     void ChooseRightOrLeft()
     {
         CheckRight();
@@ -144,6 +159,7 @@ public class Movement : MonoBehaviour
         CalculateExitPoint();
     }
 
+    //keeps checking 5 more degrees to the right until it clears the obstacle
     void CheckRight()
     {
         angleRight += 5;
@@ -155,6 +171,7 @@ public class Movement : MonoBehaviour
         }
     }
 
+    //keeps checking 5 more degrees to the left until it clears the obstacle
     void CheckLeft()
     {
         angleLeft -= 5;
@@ -166,8 +183,10 @@ public class Movement : MonoBehaviour
         }
     }
 
+    // calculates the point that the soldier should stop circling
     void CalculateExitPoint()
     {
+        //long equation to find the point that a vector intersects a line
         float a, b, c;
         float quadratic;
         a = directionToRallyPoint.x * directionToRallyPoint.x + directionToRallyPoint.z * directionToRallyPoint.z;
