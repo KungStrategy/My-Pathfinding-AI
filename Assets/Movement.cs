@@ -24,7 +24,11 @@ public class Movement : MonoBehaviour
     bool walkingAroundObstacle = false;
     string directionOfTravel;
 
-    void Start() => position = transform.position;
+    void Start()
+    {
+        position = transform.position;
+        EnlargeCapsuleColliderOfObstacles();
+    }
 
     void Update()
     {
@@ -57,6 +61,7 @@ public class Movement : MonoBehaviour
             if (obstacleDetected == true)
             {
                 radius = Vector3.Distance(obstacle.transform.position, transform.position);
+                //Debug.Log("radius" + radius);
                 //stay on path untill close to obstacle
                 if (radius <= ((obstacle.transform.localScale.x/2) + (transform.localScale.x/2) + 0.01))
                 {
@@ -82,6 +87,7 @@ public class Movement : MonoBehaviour
         //send the soldier walking in a cirle around obstacle
         if (walkingAroundObstacle == true)
         {
+            Debug.Log("walking");
             if (directionOfTravel == "CounterClockwise")
             {
                 radians += Time.deltaTime * (speed / radius);
@@ -141,6 +147,7 @@ public class Movement : MonoBehaviour
             if (hit.transform.gameObject.tag == "Avoid")
             {
                 obstacleDetected = true;
+                Debug.Log("obstacle detected");
                 obstacle = hit.transform.gameObject;
             }
         }
@@ -149,6 +156,7 @@ public class Movement : MonoBehaviour
     //sees what direction is faster to get around the obstacle
     void ChooseRightOrLeft()
     {
+        Debug.Log("choosing");
         CheckRight();
         CheckLeft();
         if (angleRight < -angleLeft)
@@ -160,6 +168,8 @@ public class Movement : MonoBehaviour
             directionOfTravel = "Clockwise";
         }
         walkingAroundObstacle = true;
+        //angleRight = 0;
+        //angleLeft = 0;
         CalculateExitPoint();
     }
 
@@ -171,6 +181,8 @@ public class Movement : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(transform.position, newVector, out hit, (2 * obstacle.transform.localScale.x)))
         {
+            Debug.Log("right");
+            Debug.Log(hit.transform.gameObject.name);
             CheckRight();
         }
     }
@@ -183,6 +195,7 @@ public class Movement : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(transform.position, newVector, out hit, (2 * obstacle.transform.localScale.x)))
         {
+            Debug.Log("left");
             CheckLeft();
         }
     }
@@ -190,6 +203,7 @@ public class Movement : MonoBehaviour
     // calculates the point that the soldier should stop circling
     void CalculateExitPoint()
     {
+        Debug.Log("calculating");
         //long equation to find the point that a vector intersects a line
         float a, b, c;
         float quadratic;
@@ -201,5 +215,16 @@ public class Movement : MonoBehaviour
         c -= radius * radius;
         quadratic = (-b + Mathf.Sqrt(b * b - 4 * a * c)) / (2 * a);
         exitCirclePoint = new Vector3(enterCirclePoint.x + quadratic * directionToRallyPoint.x, transform.position.y, enterCirclePoint.z + quadratic * directionToRallyPoint.z);
+    }
+
+    void EnlargeCapsuleColliderOfObstacles()
+    {
+        GameObject[] avoid = GameObject.FindGameObjectsWithTag("Avoid");
+        for (int i = 0; i < avoid.Length; i++)
+        {
+            CapsuleCollider col = avoid[i].GetComponent<CapsuleCollider>();
+            col.radius = ((avoid[i].transform.localScale.x / 2) + (transform.localScale.x / 2) + 0.1f) / avoid[i].transform.localScale.x;
+            Debug.Log("avoid: " + avoid[i].name + " " + col.radius);
+        }
     }
 }
