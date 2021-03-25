@@ -58,7 +58,7 @@ public class Movement : MonoBehaviour
             {
                 radius = Vector3.Distance(obstacle.transform.position, transform.position);
                 //stay on path untill close to obstacle
-                if (radius <= ((obstacle.transform.localScale.x/2) +1))
+                if (radius <= ((obstacle.transform.localScale.x/2) + (transform.localScale.x/2) + 0.01))
                 {
                     pathClear = false;
                     directionToCenter = obstacle.transform.position - transform.position;
@@ -117,9 +117,13 @@ public class Movement : MonoBehaviour
         Ray ray = Camera.main.ScreenPointToRay(touchPosition);
         if (Physics.Raycast(ray, out hit, Mathf.Infinity))
         {
-            pathClear = true;
-            Vector3 newPosition = new Vector3(hit.point.x, hit.point.y, hit.point.z);
-            rallyPoint.transform.position = newPosition;
+            Debug.Log("object tag: " + hit.transform.gameObject.tag);
+            if (hit.transform.gameObject.tag == "Ground")
+            {
+                pathClear = true;
+                Vector3 newPosition = new Vector3(hit.point.x, hit.point.y, hit.point.z);
+                rallyPoint.transform.position = newPosition;
+            }
         }
     }
 
