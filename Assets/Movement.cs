@@ -5,37 +5,20 @@ using UnityEngine;
 public class Movement : MonoBehaviour
 {
     public GameObject rallyPoint;
-    public GameObject marker;
     GameObject obstacle;
-    //CircleCollider2D circ;
-    CapsuleCollider col;
     Vector3 position;
     Vector3 directionToRallyPoint;
     Vector3 directionOfAim;
-    Vector3 obstacleHitPoint;
-    Vector3 directionToObstacle;
     Vector3 directionToCenter;
-    Vector3 startPositionPointSaver;
-    Vector3 positionPointSaver;
+    Vector3 enterCirclePoint;
     Vector3 exitCirclePoint;
-
     float distanceToRallyPoint;
-    float distanceToObstacle;
-    float distanceToCenter;
+    float radius;
     float speed = 2f;
-    //float angularSpeedConverter;
-    float ratioX;
-    float ratioY;
-    float ratioZ;
     float angleRight;
     float angleLeft;
-    float timeCounter;
-    float startAngle;
-    float a, b, c;
-    float bb4ac;
-    float mu1;
-    float mu2;
-    float exitLoopDistance;
+    float radians;
+    float exitCircleDistance;
     bool pathClear = false;
     bool obstacleDetected = false;
     bool walkingAroundObstacle = false;
@@ -45,9 +28,6 @@ public class Movement : MonoBehaviour
 
     void Update()
     {
-        //directionToRallyPoint = rallyPoint.transform.position - transform.position;
-        //distanceToRallyPoint = Vector3.Distance(rallyPoint.transform.position, transform.position);
-
         if (Input.touchCount > 0)
         {
             if (Input.GetTouch(0).phase == TouchPhase.Began)
@@ -60,72 +40,58 @@ public class Movement : MonoBehaviour
         if (pathClear == true)
         {
             directionToRallyPoint = rallyPoint.transform.position - transform.position;
-            distanceToRallyPoint = Vector3.Distance(rallyPoint.transform.position, transform.position); //- (transform.position.y - rallyPoint.transform.position.y);
-            //Debug.Log("Distance to Rally Point: " + distanceToRallyPoint);
+            distanceToRallyPoint = Vector3.Distance(rallyPoint.transform.position, transform.position);
+            float ratioX;
+            float ratioZ;
             ratioX = directionToRallyPoint.x / distanceToRallyPoint;
-            ratioY = directionToRallyPoint.y / distanceToRallyPoint;
             ratioZ = directionToRallyPoint.z / distanceToRallyPoint;
             position.x += ratioX * speed * Time.deltaTime;
             position.y = transform.position.y;
             position.z += ratioZ * speed * Time.deltaTime;
             transform.position = position;
-            if (distanceToRallyPoint == 0)
-            {
-                pathClear = false;
-            }
 
             if (obstacleDetected == true)
             {
-                distanceToCenter = Vector3.Distance(obstacle.transform.position, transform.position);
+                radius = Vector3.Distance(obstacle.transform.position, transform.position);
 
-                if (distanceToCenter <= ((obstacle.transform.localScale.x/2) +1))
+                if (radius <= ((obstacle.transform.localScale.x/2) +1))
                 {
                     pathClear = false;
                     directionToCenter = obstacle.transform.position - transform.position;
-                    distanceToCenter = Vector3.Distance(obstacle.transform.position, transform.position);
-                    
+                    radius = Vector3.Distance(obstacle.transform.position, transform.position);
                     if (directionToCenter.x <= 0)
                     {
-                        startAngle = Mathf.Atan(directionToCenter.z / directionToCenter.x);
+                        radians = Mathf.Atan(directionToCenter.z / directionToCenter.x);
                     }
                     else
                     {
-                        startAngle = Mathf.Atan(directionToCenter.z / directionToCenter.x) + Mathf.PI;
+                        radians = Mathf.Atan(directionToCenter.z / directionToCenter.x) + Mathf.PI;
                     }
-                    
-                    positionPointSaver = transform.position;
-                    //Debug.Log("Intersection Point: " + positionPointSaver);
-                    //Debug.Log("radius: " + distanceToCenter);
-                    //Debug.Log("Rally Point Vector" + directionToRallyPoint);
-                    //Debug.Log("AIM Vector" + directionOfAim);
-                    timeCounter = startAngle;
-                    //Debug.DrawRay(positionPointSaver, directionToRallyPoint, Color.blue, 1000f);
+                    enterCirclePoint = transform.position;
                     ChooseRightOrLeft();
                 }
             }
-
         }
 
         if (walkingAroundObstacle == true)
         {
             if (directionOfTravel == "CounterClockwise")
             {
-                timeCounter += Time.deltaTime * (speed / distanceToCenter);
+                radians += Time.deltaTime * (speed / radius);
             }
             else
             {
-                timeCounter -= Time.deltaTime * (speed / distanceToCenter); // * speed;
+                radians -= Time.deltaTime * (speed / radius);
             }
-
-            position.x = (Mathf.Cos(timeCounter) * distanceToCenter) + obstacle.transform.position.x;
+            position.x = (Mathf.Cos(radians) * radius) + obstacle.transform.position.x;
             position.y = transform.position.y;
-            position.z = (Mathf.Sin(timeCounter) * distanceToCenter) + obstacle.transform.position.z;
-
+            position.z = (Mathf.Sin(radians) * radius) + obstacle.transform.position.z;
             transform.position = position;
-            exitLoopDistance = Vector3.Distance(exitCirclePoint, transform.position);
-            if(exitLoopDistance < 0.01)
+            exitCircleDistance = Vector3.Distance(exitCirclePoint, transform.position);
+            if(exitCircleDistance < 0.01)
             {
                 walkingAroundObstacle = false;
+                obstacleDetected = false;
                 pathClear = true;
                 CheckPath();
             }
@@ -134,7 +100,6 @@ public class Movement : MonoBehaviour
 
     void ReasignRallyPoint()
     {
-        startPositionPointSaver = transform.position;
         RaycastHit hit;
         Touch touch = Input.GetTouch(0);
         Vector3 touchPosition = touch.position;
@@ -150,55 +115,41 @@ public class Movement : MonoBehaviour
     void CheckPath()
     {
         directionToRallyPoint = rallyPoint.transform.position - transform.position;
-        distanceToRallyPoint = Vector3.Distance(rallyPoint.transform.position, transform.position);
         directionOfAim = directionToRallyPoint;
-        directionOfAim.y += 1f;
-        //Debug.Log("Rally Point Vector" + directionToRallyPoint);
-        //Debug.Log("AIM Vector" + directionOfAim);
-        RaycastHit hitObstacle;
-        if (Physics.Raycast(transform.position, directionOfAim, out hitObstacle, distanceToRallyPoint))
+        directionOfAim.y += 1;
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, directionOfAim, out hit, Mathf.Infinity))
         {
-            //Debug.Log(hitObstacle.transform.gameObject.tag);
-            if (hitObstacle.transform.gameObject.tag == "Avoid")
+            if (hit.transform.gameObject.tag == "Avoid")
             {
-                //pathClear = false;
                 obstacleDetected = true;
-                //Debug.Log("Obstacle: " + hitObstacle.point);
-                obstacleHitPoint = hitObstacle.point;
-                obstacle = hitObstacle.transform.gameObject;
-                //Debug.Log("Obstacle Center: " + obstacle.transform.position);
+                obstacle = hit.transform.gameObject;
             }
         }
     }
 
     void ChooseRightOrLeft()
     {
-        directionToObstacle = obstacleHitPoint - transform.position;
         CheckRight();
         CheckLeft();
         if (angleRight < -angleLeft)
         {
-            walkingAroundObstacle = true;
             directionOfTravel = "CounterClockwise";
-            //CalculateExitPoint();
         }
         else
         {
-            walkingAroundObstacle = true;
             directionOfTravel = "Clockwise";
-            //CalculateExitPoint();
         }
+        walkingAroundObstacle = true;
         CalculateExitPoint();
     }
 
     void CheckRight()
     {
         angleRight += 5;
-        //Debug.Log("Angle: " + angleRight);
-        Vector3 newVector = Quaternion.Euler(0, angleRight, 0) * directionToObstacle;
-        //Debug.Log("New Vector: " + newVector);
+        Vector3 newVector = Quaternion.Euler(0, angleRight, 0) * directionToRallyPoint;
         RaycastHit hit;
-        if (Physics.Raycast(transform.position, newVector, out hit, 5))
+        if (Physics.Raycast(transform.position, newVector, out hit, (2 * obstacle.transform.localScale.x)))
         {
             CheckRight();
         }
@@ -207,11 +158,9 @@ public class Movement : MonoBehaviour
     void CheckLeft()
     {
         angleLeft -= 5;
-        //Debug.Log("Angle: " + angleLeft);
-        Vector3 newVector = Quaternion.Euler(0, angleLeft, 0) * directionToObstacle;
-        //Debug.Log("New Vector: " + newVector);
+        Vector3 newVector = Quaternion.Euler(0, angleLeft, 0) * directionToRallyPoint;
         RaycastHit hit;
-        if (Physics.Raycast(transform.position, newVector, out hit, 5))
+        if (Physics.Raycast(transform.position, newVector, out hit, (2 * obstacle.transform.localScale.x)))
         {
             CheckLeft();
         }
@@ -219,39 +168,15 @@ public class Movement : MonoBehaviour
 
     void CalculateExitPoint()
     {
+        float a, b, c;
+        float quadratic;
         a = directionToRallyPoint.x * directionToRallyPoint.x + directionToRallyPoint.z * directionToRallyPoint.z;
-        b = 2 * (directionToRallyPoint.x * (startPositionPointSaver.x - obstacle.transform.position.x) + directionToRallyPoint.z * (startPositionPointSaver.z - obstacle.transform.position.z));
+        b = 2 * (directionToRallyPoint.x * (enterCirclePoint.x - obstacle.transform.position.x) + directionToRallyPoint.z * (enterCirclePoint.z - obstacle.transform.position.z));
         c = obstacle.transform.position.x * obstacle.transform.position.x + obstacle.transform.position.z * obstacle.transform.position.z;
-        c += startPositionPointSaver.x * startPositionPointSaver.x + startPositionPointSaver.z * startPositionPointSaver.z;
-        c -= 2 * (obstacle.transform.position.x * startPositionPointSaver.x + obstacle.transform.position.z * startPositionPointSaver.z);
-        c -= distanceToCenter * distanceToCenter;
-        bb4ac = b * b - 4 * a * c;
-        /*if (Mathf.Abs(a) < float.Epsilon || bb4ac < 0)
-        {
-            //  line does not intersect
-            return new Vector3[] { Vector3.zero, Vector3.zero };
-        }*/
-        mu1 = (-b + Mathf.Sqrt(bb4ac)) / (2 * a);
-        mu2 = (-b - Mathf.Sqrt(bb4ac)) / (2 * a);
-        //sect = new Vector3[2];
-        exitCirclePoint = new Vector3(startPositionPointSaver.x + mu1 * directionToRallyPoint.x, transform.position.y, startPositionPointSaver.z + mu1 * directionToRallyPoint.z);
-        //sect[1] = new Vector3(startPositionPointSaver.x + mu2 * directionToRallyPoint.x, transform.position.y, startPositionPointSaver.z + mu2 * directionToRallyPoint.z);
-        //Debug.Log("points of intersection: " + exitCirclePoint);
-
-        //Debug.Log("CalculateExitPoint");
-        //col = obstacle.GetComponent<CapsuleCollider>();
-        //col.radius = distanceToCenter / obstacle.transform.localScale.x;
-        /*Debug.DrawRay(startPositionPointSaver, directionOfAim, Color.blue, 1000f);
-        RaycastHit hit;
-        if (Physics.Raycast(startPositionPointSaver, directionOfAim, out hit, distanceToRallyPoint))
-        {
-            if (hit.collider)
-            {
-                exitCirclePoint = hit.point;
-                Debug.Log("Exit Point: " + exitCirclePoint);
-            }
-        }*/
-        //float temporaryVariable = Vector3.Distance(rallyPoint.transform.position, positionPointSaver);
-        //exitLoopDistance = temporaryVariable - (2 * distanceToCenter);
+        c += enterCirclePoint.x * enterCirclePoint.x + enterCirclePoint.z * enterCirclePoint.z;
+        c -= 2 * (obstacle.transform.position.x * enterCirclePoint.x + obstacle.transform.position.z * enterCirclePoint.z);
+        c -= radius * radius;
+        quadratic = (-b + Mathf.Sqrt(b * b - 4 * a * c)) / (2 * a);
+        exitCirclePoint = new Vector3(enterCirclePoint.x + quadratic * directionToRallyPoint.x, transform.position.y, enterCirclePoint.z + quadratic * directionToRallyPoint.z);
     }
 }
