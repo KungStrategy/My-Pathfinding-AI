@@ -15,8 +15,8 @@ public class Movement : MonoBehaviour
     float distanceToRallyPoint;
     float radius;
     float speed = 2f;
-    float angleRight;
-    float angleLeft;
+    float angleRight = 20f;
+    float angleLeft = -20f;
     float radians;
     float exitCircleDistance;
     bool pathClear = false;
@@ -24,7 +24,12 @@ public class Movement : MonoBehaviour
     bool walkingAroundObstacle = false;
     string directionOfTravel;
 
-    void Start() => position = transform.position;
+    void Start()
+    {
+        position = transform.position;
+        //makes colliders bigger so rally points don't get to close to obstacles
+        EnlargeCapsuleColliderOfObstacles();
+    }
 
     void Update()
     {
@@ -34,7 +39,9 @@ public class Movement : MonoBehaviour
             //makes sure the functions are only called once
             if (Input.GetTouch(0).phase == TouchPhase.Began)
             {
+                //EnlargeCapsuleColliderOfObstacles();
                 ReasignRallyPoint();
+                //ResetCapsuleColliderOfObstacles();
                 CheckPath();
             }
         }
@@ -47,6 +54,7 @@ public class Movement : MonoBehaviour
             //calculates x and y components of direction
             float ratioX = directionToRallyPoint.x / distanceToRallyPoint;
             float ratioZ = directionToRallyPoint.z / distanceToRallyPoint;
+            //aplies movement over time
             position.x += ratioX * speed * Time.deltaTime;
             position.y = transform.position.y;
             position.z += ratioZ * speed * Time.deltaTime;
@@ -57,8 +65,9 @@ public class Movement : MonoBehaviour
             if (obstacleDetected == true)
             {
                 radius = Vector3.Distance(obstacle.transform.position, transform.position);
+                //Debug.Log("radius" + radius);
                 //stay on path untill close to obstacle
-                if (radius <= ((obstacle.transform.localScale.x/2) +1))
+                if (radius <= ((obstacle.transform.localScale.x/2) + (transform.localScale.x/2) + 0.01))
                 {
                     pathClear = false;
                     directionToCenter = obstacle.transform.position - transform.position;
@@ -82,6 +91,7 @@ public class Movement : MonoBehaviour
         //send the soldier walking in a cirle around obstacle
         if (walkingAroundObstacle == true)
         {
+            //Debug.Log("walking");
             if (directionOfTravel == "CounterClockwise")
             {
                 radians += Time.deltaTime * (speed / radius);
@@ -119,7 +129,35 @@ public class Movement : MonoBehaviour
         {
             pathClear = true;
             Vector3 newPosition = new Vector3(hit.point.x, hit.point.y, hit.point.z);
-            rallyPoint.transform.position = newPosition;
+            //checks to see if point touched is the ground
+            if (hit.transform.gameObject.tag == "Ground")
+            {
+                rallyPoint.transform.position = newPosition;
+            }
+            //sets a modified rally point so that soldier does not run into obstacle
+            else
+            {
+                GameObject touchedObstacle = hit.transform.gameObject;
+                Vector3 directionToTouchedObstacle = touchedObstacle.transform.position - newPosition;
+                // finds the angle from center of object touched so soldier can move to that side of the obstacle
+                if (directionToTouchedObstacle.x <= 0)
+                {
+                    radians = Mathf.Atan(directionToTouchedObstacle.z / directionToTouchedObstacle.x);
+                }
+                //adds 180 degs because unity angles start over at 180
+                else
+                {
+                    radians = Mathf.Atan(directionToTouchedObstacle.z / directionToTouchedObstacle.x) + Mathf.PI;
+                }
+                Vector3 modifiedRallyPoint = new Vector3(0, 0, 0);
+                //makes sure the rally point is proper distance from obstacle
+                float colliderRadius = (touchedObstacle.transform.localScale.x / 2) + (transform.localScale.x / 2) + 0.1f;
+                //trig to calculate exact point
+                modifiedRallyPoint.x = (Mathf.Cos(radians) * colliderRadius) + touchedObstacle.transform.position.x;
+                modifiedRallyPoint.y = 1.5f;
+                modifiedRallyPoint.z = (Mathf.Sin(radians) * colliderRadius) + touchedObstacle.transform.position.z;
+                rallyPoint.transform.position = modifiedRallyPoint;
+            }
         }
     }
 
@@ -145,8 +183,11 @@ public class Movement : MonoBehaviour
     //sees what direction is faster to get around the obstacle
     void ChooseRightOrLeft()
     {
+        //sets colliders so that CheckRight() and CheckLeft() can see the obstacle
+        ResetCapsuleColliderOfObstacles();
         CheckRight();
         CheckLeft();
+        //chooses direction
         if (angleRight < -angleLeft)
         {
             directionOfTravel = "CounterClockwise";
@@ -156,14 +197,19 @@ public class Movement : MonoBehaviour
             directionOfTravel = "Clockwise";
         }
         walkingAroundObstacle = true;
+        //reset angles so they can evaluate other obstacles
+        angleRight = 20f;
+        angleLeft = -20f;
         CalculateExitPoint();
+        //makes colliders bigger so other rally points don't get to close to obstacles
+        EnlargeCapsuleColliderOfObstacles();
     }
 
     //keeps checking 5 more degrees to the right until it clears the obstacle
     void CheckRight()
     {
         angleRight += 5;
-        Vector3 newVector = Quaternion.Euler(0, angleRight, 0) * directionToRallyPoint;
+        Vector3 newVector = Quaternion.Euler(0, angleRight, 0) * directionOfAim;
         RaycastHit hit;
         if (Physics.Raycast(transform.position, newVector, out hit, (2 * obstacle.transform.localScale.x)))
         {
@@ -175,7 +221,7 @@ public class Movement : MonoBehaviour
     void CheckLeft()
     {
         angleLeft -= 5;
-        Vector3 newVector = Quaternion.Euler(0, angleLeft, 0) * directionToRallyPoint;
+        Vector3 newVector = Quaternion.Euler(0, angleLeft, 0) * directionOfAim;
         RaycastHit hit;
         if (Physics.Raycast(transform.position, newVector, out hit, (2 * obstacle.transform.localScale.x)))
         {
@@ -197,5 +243,27 @@ public class Movement : MonoBehaviour
         c -= radius * radius;
         quadratic = (-b + Mathf.Sqrt(b * b - 4 * a * c)) / (2 * a);
         exitCirclePoint = new Vector3(enterCirclePoint.x + quadratic * directionToRallyPoint.x, transform.position.y, enterCirclePoint.z + quadratic * directionToRallyPoint.z);
+    }
+    
+    //makes all colliders slightly bigger than the radius of the walk around object loop
+    void EnlargeCapsuleColliderOfObstacles()
+    {
+        GameObject[] avoid = GameObject.FindGameObjectsWithTag("Avoid");
+        for (int i = 0; i < avoid.Length; i++)
+        {
+            CapsuleCollider col = avoid[i].GetComponent<CapsuleCollider>();
+            col.radius = ((avoid[i].transform.localScale.x / 2) + (transform.localScale.x / 2) + 0.1f) / avoid[i].transform.localScale.x;
+        }
+    }
+
+    //makes all colliders the same size as the obstacles
+    void ResetCapsuleColliderOfObstacles()
+    {
+        GameObject[] avoid = GameObject.FindGameObjectsWithTag("Avoid");
+        for (int i = 0; i < avoid.Length; i++)
+        {
+            CapsuleCollider col = avoid[i].GetComponent<CapsuleCollider>();
+            col.radius = 0.5f;
+        }
     }
 }
