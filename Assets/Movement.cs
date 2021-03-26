@@ -15,8 +15,8 @@ public class Movement : MonoBehaviour
     float distanceToRallyPoint;
     float radius;
     float speed = 2f;
-    float angleRight;
-    float angleLeft;
+    float angleRight = 20f;
+    float angleLeft = -20f;
     float radians;
     float exitCircleDistance;
     bool pathClear = false;
@@ -38,7 +38,9 @@ public class Movement : MonoBehaviour
             //makes sure the functions are only called once
             if (Input.GetTouch(0).phase == TouchPhase.Began)
             {
+                //EnlargeCapsuleColliderOfObstacles();
                 ReasignRallyPoint();
+                //ResetCapsuleColliderOfObstacles();
                 CheckPath();
             }
         }
@@ -87,7 +89,7 @@ public class Movement : MonoBehaviour
         //send the soldier walking in a cirle around obstacle
         if (walkingAroundObstacle == true)
         {
-            Debug.Log("walking");
+            //Debug.Log("walking");
             if (directionOfTravel == "CounterClockwise")
             {
                 radians += Time.deltaTime * (speed / radius);
@@ -151,12 +153,23 @@ public class Movement : MonoBehaviour
                 obstacle = hit.transform.gameObject;
             }
         }
+        /*if (Physics.OverlapSphere(transform.position, transform.localScale.x/2, 1<<3, QueryTriggerInteraction.UseGlobal, directionOfAim, distanceToRallyPoint))
+        {
+            //verifies that what it hit is an obstacle
+            if (hit.transform.gameObject.tag == "Avoid")
+            {
+                obstacleDetected = true;
+                Debug.Log("obstacle detected");
+                obstacle = hit.transform.gameObject;
+            }
+        }*/
     }
 
     //sees what direction is faster to get around the obstacle
     void ChooseRightOrLeft()
     {
         Debug.Log("choosing");
+        ResetCapsuleColliderOfObstacles();
         CheckRight();
         CheckLeft();
         if (angleRight < -angleLeft)
@@ -168,21 +181,23 @@ public class Movement : MonoBehaviour
             directionOfTravel = "Clockwise";
         }
         walkingAroundObstacle = true;
-        //angleRight = 0;
-        //angleLeft = 0;
+        angleRight = 20f;
+        angleLeft = -20f;
         CalculateExitPoint();
+        EnlargeCapsuleColliderOfObstacles();
     }
 
     //keeps checking 5 more degrees to the right until it clears the obstacle
     void CheckRight()
     {
+        //Debug.Log("checking right");
         angleRight += 5;
-        Vector3 newVector = Quaternion.Euler(0, angleRight, 0) * directionToRallyPoint;
+        Vector3 newVector = Quaternion.Euler(0, angleRight, 0) * directionOfAim;
         RaycastHit hit;
         if (Physics.Raycast(transform.position, newVector, out hit, (2 * obstacle.transform.localScale.x)))
         {
             Debug.Log("right");
-            Debug.Log(hit.transform.gameObject.name);
+            //Debug.Log(hit.transform.gameObject.name);
             CheckRight();
         }
     }
@@ -190,8 +205,9 @@ public class Movement : MonoBehaviour
     //keeps checking 5 more degrees to the left until it clears the obstacle
     void CheckLeft()
     {
+        //Debug.Log("checking left");
         angleLeft -= 5;
-        Vector3 newVector = Quaternion.Euler(0, angleLeft, 0) * directionToRallyPoint;
+        Vector3 newVector = Quaternion.Euler(0, angleLeft, 0) * directionOfAim;
         RaycastHit hit;
         if (Physics.Raycast(transform.position, newVector, out hit, (2 * obstacle.transform.localScale.x)))
         {
@@ -224,7 +240,18 @@ public class Movement : MonoBehaviour
         {
             CapsuleCollider col = avoid[i].GetComponent<CapsuleCollider>();
             col.radius = ((avoid[i].transform.localScale.x / 2) + (transform.localScale.x / 2) + 0.1f) / avoid[i].transform.localScale.x;
-            Debug.Log("avoid: " + avoid[i].name + " " + col.radius);
+            //Debug.Log("avoid: " + avoid[i].name + " " + col.radius);
+        }
+    }
+
+    void ResetCapsuleColliderOfObstacles()
+    {
+        GameObject[] avoid = GameObject.FindGameObjectsWithTag("Avoid");
+        for (int i = 0; i < avoid.Length; i++)
+        {
+            CapsuleCollider col = avoid[i].GetComponent<CapsuleCollider>();
+            col.radius = 0.5f;
+            //Debug.Log("avoid: " + avoid[i].name + " " + col.radius);
         }
     }
 }
