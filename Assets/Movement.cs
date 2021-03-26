@@ -27,6 +27,7 @@ public class Movement : MonoBehaviour
     void Start()
     {
         position = transform.position;
+        //makes colliders bigger so rally points don't get to close to obstacles
         EnlargeCapsuleColliderOfObstacles();
     }
 
@@ -53,6 +54,7 @@ public class Movement : MonoBehaviour
             //calculates x and y components of direction
             float ratioX = directionToRallyPoint.x / distanceToRallyPoint;
             float ratioZ = directionToRallyPoint.z / distanceToRallyPoint;
+            //aplies movement over time
             position.x += ratioX * speed * Time.deltaTime;
             position.y = transform.position.y;
             position.z += ratioZ * speed * Time.deltaTime;
@@ -127,17 +129,17 @@ public class Movement : MonoBehaviour
         {
             pathClear = true;
             Vector3 newPosition = new Vector3(hit.point.x, hit.point.y, hit.point.z);
-            Debug.Log("object tag: " + hit.transform.gameObject.tag);
+            //checks to see if point touched is the ground
             if (hit.transform.gameObject.tag == "Ground")
             {
-                
                 rallyPoint.transform.position = newPosition;
             }
+            //sets a modified rally point so that soldier does not run into obstacle
             else
             {
                 GameObject touchedObstacle = hit.transform.gameObject;
-                Debug.Log("touched obstacle: " + touchedObstacle.transform.gameObject.name);
                 Vector3 directionToTouchedObstacle = touchedObstacle.transform.position - newPosition;
+                // finds the angle from center of object touched so soldier can move to that side of the obstacle
                 if (directionToTouchedObstacle.x <= 0)
                 {
                     radians = Mathf.Atan(directionToTouchedObstacle.z / directionToTouchedObstacle.x);
@@ -148,12 +150,12 @@ public class Movement : MonoBehaviour
                     radians = Mathf.Atan(directionToTouchedObstacle.z / directionToTouchedObstacle.x) + Mathf.PI;
                 }
                 Vector3 modifiedRallyPoint = new Vector3(0, 0, 0);
+                //makes sure the rally point is proper distance from obstacle
                 float colliderRadius = (touchedObstacle.transform.localScale.x / 2) + (transform.localScale.x / 2) + 0.1f;
-                Debug.Log("other radius: " + colliderRadius);
+                //trig to calculate exact point
                 modifiedRallyPoint.x = (Mathf.Cos(radians) * colliderRadius) + touchedObstacle.transform.position.x;
                 modifiedRallyPoint.y = 1.5f;
                 modifiedRallyPoint.z = (Mathf.Sin(radians) * colliderRadius) + touchedObstacle.transform.position.z;
-                Debug.Log("modified rally point: " + modifiedRallyPoint);
                 rallyPoint.transform.position = modifiedRallyPoint;
             }
         }
@@ -173,29 +175,19 @@ public class Movement : MonoBehaviour
             if (hit.transform.gameObject.tag == "Avoid")
             {
                 obstacleDetected = true;
-                //Debug.Log("obstacle detected");
                 obstacle = hit.transform.gameObject;
             }
         }
-        /*if (Physics.OverlapSphere(transform.position, transform.localScale.x/2, 1<<3, QueryTriggerInteraction.UseGlobal, directionOfAim, distanceToRallyPoint))
-        {
-            //verifies that what it hit is an obstacle
-            if (hit.transform.gameObject.tag == "Avoid")
-            {
-                obstacleDetected = true;
-                Debug.Log("obstacle detected");
-                obstacle = hit.transform.gameObject;
-            }
-        }*/
     }
 
     //sees what direction is faster to get around the obstacle
     void ChooseRightOrLeft()
     {
-        //Debug.Log("choosing");
+        //sets colliders so that CheckRight() and CheckLeft() can see the obstacle
         ResetCapsuleColliderOfObstacles();
         CheckRight();
         CheckLeft();
+        //chooses direction
         if (angleRight < -angleLeft)
         {
             directionOfTravel = "CounterClockwise";
@@ -205,23 +197,22 @@ public class Movement : MonoBehaviour
             directionOfTravel = "Clockwise";
         }
         walkingAroundObstacle = true;
+        //reset angles so they can evaluate other obstacles
         angleRight = 20f;
         angleLeft = -20f;
         CalculateExitPoint();
+        //makes colliders bigger so other rally points don't get to close to obstacles
         EnlargeCapsuleColliderOfObstacles();
     }
 
     //keeps checking 5 more degrees to the right until it clears the obstacle
     void CheckRight()
     {
-        //Debug.Log("checking right");
         angleRight += 5;
         Vector3 newVector = Quaternion.Euler(0, angleRight, 0) * directionOfAim;
         RaycastHit hit;
         if (Physics.Raycast(transform.position, newVector, out hit, (2 * obstacle.transform.localScale.x)))
         {
-           // Debug.Log("right");
-            //Debug.Log(hit.transform.gameObject.name);
             CheckRight();
         }
     }
@@ -229,13 +220,11 @@ public class Movement : MonoBehaviour
     //keeps checking 5 more degrees to the left until it clears the obstacle
     void CheckLeft()
     {
-        //Debug.Log("checking left");
         angleLeft -= 5;
         Vector3 newVector = Quaternion.Euler(0, angleLeft, 0) * directionOfAim;
         RaycastHit hit;
         if (Physics.Raycast(transform.position, newVector, out hit, (2 * obstacle.transform.localScale.x)))
         {
-            //Debug.Log("left");
             CheckLeft();
         }
     }
@@ -243,7 +232,6 @@ public class Movement : MonoBehaviour
     // calculates the point that the soldier should stop circling
     void CalculateExitPoint()
     {
-        //Debug.Log("calculating");
         //long equation to find the point that a vector intersects a line
         float a, b, c;
         float quadratic;
@@ -256,7 +244,8 @@ public class Movement : MonoBehaviour
         quadratic = (-b + Mathf.Sqrt(b * b - 4 * a * c)) / (2 * a);
         exitCirclePoint = new Vector3(enterCirclePoint.x + quadratic * directionToRallyPoint.x, transform.position.y, enterCirclePoint.z + quadratic * directionToRallyPoint.z);
     }
-
+    
+    //makes all colliders slightly bigger than the radius of the walk around object loop
     void EnlargeCapsuleColliderOfObstacles()
     {
         GameObject[] avoid = GameObject.FindGameObjectsWithTag("Avoid");
@@ -264,10 +253,10 @@ public class Movement : MonoBehaviour
         {
             CapsuleCollider col = avoid[i].GetComponent<CapsuleCollider>();
             col.radius = ((avoid[i].transform.localScale.x / 2) + (transform.localScale.x / 2) + 0.1f) / avoid[i].transform.localScale.x;
-            //Debug.Log("avoid: " + avoid[i].name + " " + col.radius);
         }
     }
 
+    //makes all colliders the same size as the obstacles
     void ResetCapsuleColliderOfObstacles()
     {
         GameObject[] avoid = GameObject.FindGameObjectsWithTag("Avoid");
@@ -275,7 +264,6 @@ public class Movement : MonoBehaviour
         {
             CapsuleCollider col = avoid[i].GetComponent<CapsuleCollider>();
             col.radius = 0.5f;
-            //Debug.Log("avoid: " + avoid[i].name + " " + col.radius);
         }
     }
 }
