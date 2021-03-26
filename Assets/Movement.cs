@@ -15,8 +15,8 @@ public class Movement : MonoBehaviour
     float distanceToRallyPoint;
     float radius;
     float speed = 2f;
-    float angleRight = 20f;
-    float angleLeft = -20f;
+    float angleRight = 25f;
+    float angleLeft = -25f;
     float radians;
     float exitCircleDistance;
     bool pathClear = false;
@@ -39,9 +39,7 @@ public class Movement : MonoBehaviour
             //makes sure the functions are only called once
             if (Input.GetTouch(0).phase == TouchPhase.Began)
             {
-                //EnlargeCapsuleColliderOfObstacles();
                 ReasignRallyPoint();
-                //ResetCapsuleColliderOfObstacles();
                 CheckPath();
             }
         }
@@ -65,7 +63,6 @@ public class Movement : MonoBehaviour
             if (obstacleDetected == true)
             {
                 radius = Vector3.Distance(obstacle.transform.position, transform.position);
-                //Debug.Log("radius" + radius);
                 //stay on path untill close to obstacle
                 if (radius <= ((obstacle.transform.localScale.x/2) + (transform.localScale.x/2) + 0.01))
                 {
@@ -107,7 +104,7 @@ public class Movement : MonoBehaviour
             transform.position = position;
             //checks to when the soldier should stop circling
             exitCircleDistance = Vector3.Distance(exitCirclePoint, transform.position);
-            if(exitCircleDistance < 0.01)
+            if(exitCircleDistance < 0.05)
             {
                 walkingAroundObstacle = false;
                 obstacleDetected = false;
@@ -154,7 +151,7 @@ public class Movement : MonoBehaviour
                 float colliderRadius = (touchedObstacle.transform.localScale.x / 2) + (transform.localScale.x / 2) + 0.1f;
                 //trig to calculate exact point
                 modifiedRallyPoint.x = (Mathf.Cos(radians) * colliderRadius) + touchedObstacle.transform.position.x;
-                modifiedRallyPoint.y = 1.5f;
+                modifiedRallyPoint.y = 0.5f;
                 modifiedRallyPoint.z = (Mathf.Sin(radians) * colliderRadius) + touchedObstacle.transform.position.z;
                 rallyPoint.transform.position = modifiedRallyPoint;
             }
@@ -198,8 +195,8 @@ public class Movement : MonoBehaviour
         }
         walkingAroundObstacle = true;
         //reset angles so they can evaluate other obstacles
-        angleRight = 20f;
-        angleLeft = -20f;
+        angleRight = 25f;
+        angleLeft = -25f;
         CalculateExitPoint();
         //makes colliders bigger so other rally points don't get to close to obstacles
         EnlargeCapsuleColliderOfObstacles();
@@ -232,7 +229,7 @@ public class Movement : MonoBehaviour
     // calculates the point that the soldier should stop circling
     void CalculateExitPoint()
     {
-        //long equation to find the point that a vector intersects a line
+        //long equation to find the point that a vector intersects a circle
         float a, b, c;
         float quadratic;
         a = directionToRallyPoint.x * directionToRallyPoint.x + directionToRallyPoint.z * directionToRallyPoint.z;
