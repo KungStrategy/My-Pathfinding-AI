@@ -125,12 +125,36 @@ public class Movement : MonoBehaviour
         Ray ray = Camera.main.ScreenPointToRay(touchPosition);
         if (Physics.Raycast(ray, out hit, Mathf.Infinity))
         {
+            pathClear = true;
+            Vector3 newPosition = new Vector3(hit.point.x, hit.point.y, hit.point.z);
             Debug.Log("object tag: " + hit.transform.gameObject.tag);
             if (hit.transform.gameObject.tag == "Ground")
             {
-                pathClear = true;
-                Vector3 newPosition = new Vector3(hit.point.x, hit.point.y, hit.point.z);
+                
                 rallyPoint.transform.position = newPosition;
+            }
+            else
+            {
+                GameObject touchedObstacle = hit.transform.gameObject;
+                Debug.Log("touched obstacle: " + touchedObstacle.transform.gameObject.name);
+                Vector3 directionToTouchedObstacle = touchedObstacle.transform.position - newPosition;
+                if (directionToTouchedObstacle.x <= 0)
+                {
+                    radians = Mathf.Atan(directionToTouchedObstacle.z / directionToTouchedObstacle.x);
+                }
+                //adds 180 degs because unity angles start over at 180
+                else
+                {
+                    radians = Mathf.Atan(directionToTouchedObstacle.z / directionToTouchedObstacle.x) + Mathf.PI;
+                }
+                Vector3 modifiedRallyPoint = new Vector3(0, 0, 0);
+                float colliderRadius = (touchedObstacle.transform.localScale.x / 2) + (transform.localScale.x / 2) + 0.1f;
+                Debug.Log("other radius: " + colliderRadius);
+                modifiedRallyPoint.x = (Mathf.Cos(radians) * colliderRadius) + touchedObstacle.transform.position.x;
+                modifiedRallyPoint.y = 1.5f;
+                modifiedRallyPoint.z = (Mathf.Sin(radians) * colliderRadius) + touchedObstacle.transform.position.z;
+                Debug.Log("modified rally point: " + modifiedRallyPoint);
+                rallyPoint.transform.position = modifiedRallyPoint;
             }
         }
     }
@@ -149,7 +173,7 @@ public class Movement : MonoBehaviour
             if (hit.transform.gameObject.tag == "Avoid")
             {
                 obstacleDetected = true;
-                Debug.Log("obstacle detected");
+                //Debug.Log("obstacle detected");
                 obstacle = hit.transform.gameObject;
             }
         }
@@ -168,7 +192,7 @@ public class Movement : MonoBehaviour
     //sees what direction is faster to get around the obstacle
     void ChooseRightOrLeft()
     {
-        Debug.Log("choosing");
+        //Debug.Log("choosing");
         ResetCapsuleColliderOfObstacles();
         CheckRight();
         CheckLeft();
@@ -196,7 +220,7 @@ public class Movement : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(transform.position, newVector, out hit, (2 * obstacle.transform.localScale.x)))
         {
-            Debug.Log("right");
+           // Debug.Log("right");
             //Debug.Log(hit.transform.gameObject.name);
             CheckRight();
         }
@@ -211,7 +235,7 @@ public class Movement : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(transform.position, newVector, out hit, (2 * obstacle.transform.localScale.x)))
         {
-            Debug.Log("left");
+            //Debug.Log("left");
             CheckLeft();
         }
     }
@@ -219,7 +243,7 @@ public class Movement : MonoBehaviour
     // calculates the point that the soldier should stop circling
     void CalculateExitPoint()
     {
-        Debug.Log("calculating");
+        //Debug.Log("calculating");
         //long equation to find the point that a vector intersects a line
         float a, b, c;
         float quadratic;
